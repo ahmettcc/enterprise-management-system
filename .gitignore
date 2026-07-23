@@ -1,0 +1,22 @@
+# Dependencies
+backend/node_modules/
+
+# Environment variables
+backend/.env
+
+# Build output
+backend/dist/
+
+# Logs
+*.log
+
+# VS Code
+.vscode/
+
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+
+backend/src/generated/prisma/
