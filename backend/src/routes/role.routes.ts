@@ -81,4 +81,109 @@ router.get("/:id", async (req, res) => {
   }
 });
 
+// ID'ye göre rol güncelle
+router.put("/:id", async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+
+    if (Number.isNaN(id)) {
+      return res.status(400).json({
+        message: "Geçerli bir rol ID'si girilmelidir.",
+      });
+    }
+    const { roleName, description } = req.body;
+
+    if (!roleName) {
+      return res.status(400).json({
+        message: "Rol adı zorunludur.",
+      });
+    }
+
+    const existingRole = await prisma.role.findUnique({
+        where: {
+        id,
+      },
+    });
+
+    if (!existingRole) {
+      return res.status(404).json({
+        message: "Güncellenecek rol bulunamadı.",
+      });
+    }
+
+    const updatedRole = await prisma.role.update({
+      where: {
+        id,
+      },
+      data: {
+        roleName,
+        description: description ?? null,
+      },
+    });
+
+res.status(200).json(updatedRole);
+
+    const role = await prisma.role.update({
+      where: {
+        id,
+      },
+      data: {
+        roleName,
+        description,
+      },
+    });
+
+    res.status(200).json(role);
+  } catch (error) {
+    console.error(error);
+
+    res.status(500).json({
+      message: "Rol güncellenirken bir hata oluştu.",
+    });
+  }
+});
+
+// ID'ye göre rol sil
+router.delete("/:id", async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+
+    if (Number.isNaN(id)) {
+      return res.status(400).json({
+        message: "Geçerli bir rol ID'si girilmelidir.",
+      });
+    }
+
+    const existingRole = await prisma.role.findUnique({
+      where: {
+        id,
+      },
+    });
+
+    if (!existingRole) {
+      return res.status(404).json({
+        message: "Silinecek rol bulunamadı.",
+      });
+    }
+
+    const deletedRole = await prisma.role.delete({
+      where: {
+        id,
+      },
+    });
+
+    res.status(200).json({
+      message: "Rol başarıyla silindi.",
+      deletedRole,
+    });
+
+  } catch (error) {
+    console.error(error);
+
+    res.status(500).json({
+      message: "Rol silinirken bir hata oluştu.",
+    });
+  }
+  
+});
 export default router;
