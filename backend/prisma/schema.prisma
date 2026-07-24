@@ -20,3 +20,109 @@ model Role {
 
   @@map("Roles")
 }
+
+model Customer {
+  id        Int     @id @default(autoincrement()) @map("ID")
+  firstName String  @map("FirstName") @db.VarChar(50)
+  lastName  String  @map("LastName") @db.VarChar(50)
+  phone     String? @map("Phone") @db.VarChar(20)
+  email     String? @map("Email") @db.VarChar(100)
+  address   String? @map("Address") @db.VarChar(255)
+
+  @@map("Customers")
+}
+
+model Category {
+  id           Int     @id @default(autoincrement()) @map("ID")
+  categoryName String  @unique @map("CategoryName") @db.VarChar(100)
+  description  String? @map("Description") @db.VarChar(255)
+
+  @@map("Categories")
+}
+
+model Supplier {
+  id            Int     @id @default(autoincrement()) @map("ID")
+  companyName   String  @map("CompanyName") @db.VarChar(100)
+  contactPerson String? @map("ContactPerson") @db.VarChar(100)
+  phone         String? @map("Phone") @db.VarChar(20)
+  email         String? @map("Email") @db.VarChar(100)
+  address       String? @map("Address") @db.VarChar(255)
+
+  @@map("Suppliers")
+}
+
+model Warehouse {
+  id            Int      @id @default(autoincrement()) @map("ID")
+  warehouseName String   @map("WarehouseName") @db.VarChar(100)
+  address       String?  @map("Address") @db.VarChar(255)
+  createdAt     DateTime @default(now()) @map("CreatedAt")
+
+  @@map("Warehouses")
+}
+
+model User {
+  id           Int    @id @default(autoincrement()) @map("ID")
+  firstName    String @map("FirstName") @db.VarChar(50)
+  lastName     String @map("LastName") @db.VarChar(50)
+  email        String @unique @map("Email") @db.VarChar(100)
+  passwordHash String @map("PasswordHash") @db.VarChar(255)
+  roleId       Int    @map("RoleID")
+
+  @@map("Users")
+}
+
+model Product {
+  id            Int     @id @default(autoincrement()) @map("ID")
+  barcode       String  @unique @map("Barcode") @db.VarChar(100)
+  productName   String  @map("ProductName") @db.VarChar(100)
+  description   String? @map("Description") @db.VarChar(255)
+  purchasePrice Decimal @map("PurchasePrice") @db.Decimal(10, 2)
+  salePrice     Decimal @map("SalePrice") @db.Decimal(10, 2)
+  categoryId    Int     @map("CategoryID")
+  supplierId    Int     @map("SupplierID")
+
+  @@map("Products")
+}
+
+model Stock {
+  id              Int @id @default(autoincrement()) @map("ID")
+  quantity        Int @map("Quantity")
+  minimumQuantity Int @map("MinimumQuantity")
+  productId       Int @map("ProductID")
+  warehouseId     Int @map("WarehouseID")
+
+  @@map("Stock")
+}
+
+model Sale {
+  id            Int      @id @default(autoincrement()) @map("ID")
+  saleDate      DateTime @default(now()) @map("SaleDate")
+  totalAmount   Decimal  @map("TotalAmount") @db.Decimal(10, 2)
+  paymentMethod String   @map("PaymentMethod") @db.VarChar(50)
+  customerId    Int      @map("CustomerID")
+  userId        Int      @map("UserID")
+
+  @@map("Sales")
+}
+
+model SaleItem {
+  id         Int     @id @default(autoincrement()) @map("ID")
+  quantity   Int     @map("Quantity")
+  unitPrice  Decimal @map("UnitPrice") @db.Decimal(10, 2)
+  totalPrice Decimal @map("TotalPrice") @db.Decimal(10, 2)
+  saleId     Int     @map("SaleID")
+  productId  Int     @map("ProductID")
+
+  @@map("SaleItems")
+}
+
+model AuditLog {
+  id        Int      @id @default(autoincrement()) @map("ID")
+  action    String   @map("Action") @db.VarChar(50)
+  tableName String   @map("TableName") @db.VarChar(100)
+  recordId  Int      @map("RecordID")
+  createdAt DateTime @default(now()) @map("CreatedAt")
+  userId    Int      @map("UserID")
+
+  @@map("AuditLogs")
+}

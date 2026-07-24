@@ -91,6 +91,7 @@ router.put("/:id", async (req, res) => {
         message: "Geçerli bir rol ID'si girilmelidir.",
       });
     }
+
     const { roleName, description } = req.body;
 
     if (!roleName) {
@@ -100,7 +101,7 @@ router.put("/:id", async (req, res) => {
     }
 
     const existingRole = await prisma.role.findUnique({
-        where: {
+      where: {
         id,
       },
     });
@@ -121,19 +122,7 @@ router.put("/:id", async (req, res) => {
       },
     });
 
-res.status(200).json(updatedRole);
-
-    const role = await prisma.role.update({
-      where: {
-        id,
-      },
-      data: {
-        roleName,
-        description,
-      },
-    });
-
-    res.status(200).json(role);
+    res.status(200).json(updatedRole);
   } catch (error) {
     console.error(error);
 
