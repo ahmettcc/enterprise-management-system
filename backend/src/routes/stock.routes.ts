@@ -6,7 +6,12 @@ const router = Router();
 // Bütün stok kayıtlarını getir
 router.get("/", async (req, res) => {
   try {
-    const stocks = await prisma.stock.findMany();
+    const stocks = await prisma.stock.findMany({
+      include: {
+        product: true,
+        warehouse: true,
+      },
+    });
 
     res.status(200).json(stocks);
   } catch (error) {
@@ -47,6 +52,14 @@ router.post("/", async (req, res) => {
   } catch (error) {
     console.error(error);
 
+    const prismaError = error as { code?: string };
+
+    if (prismaError.code === "P2002") {
+      return res.status(409).json({
+        message: "Bu ürün için bu depoda zaten stok kaydı bulunmaktadır.",
+      });
+    }
+
     res.status(500).json({
       message: "Stok kaydı eklenirken bir hata oluştu.",
     });
@@ -67,6 +80,10 @@ router.get("/:id", async (req, res) => {
     const stock = await prisma.stock.findUnique({
       where: {
         id,
+      },
+      include: {
+        product: true,
+        warehouse: true,
       },
     });
 
@@ -137,6 +154,15 @@ router.put("/:id", async (req, res) => {
     res.status(200).json(updatedStock);
   } catch (error) {
     console.error(error);
+
+    const prismaError = error as { code?: string };
+
+    if (prismaError.code === "P2002") {
+      return res.status(409).json({
+        message: "Bu ürün için bu depoda zaten stok kaydı bulunmaktadır.",
+      });
+    }
+
 
     res.status(500).json({
       message: "Stok kaydı güncellenirken bir hata oluştu.",

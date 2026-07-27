@@ -3,10 +3,14 @@ import { prisma } from "../lib/prisma.js";
 
 const router = Router();
 
-// Bütün ürünleri getir
 router.get("/", async (req, res) => {
   try {
-    const products = await prisma.product.findMany();
+    const products = await prisma.product.findMany({
+      include: {
+        category: true,
+        supplier: true,
+      },
+    });
 
     res.status(200).json(products);
   } catch (error) {
@@ -18,7 +22,6 @@ router.get("/", async (req, res) => {
   }
 });
 
-// Yeni ürün ekle
 router.post("/", async (req, res) => {
   try {
     const {
@@ -66,7 +69,6 @@ router.post("/", async (req, res) => {
   }
 });
 
-// ID'ye göre tek ürün getir
 router.get("/:id", async (req, res) => {
   try {
     const id = Number(req.params.id);
@@ -81,7 +83,11 @@ router.get("/:id", async (req, res) => {
       where: {
         id,
       },
-    });
+      include: {
+        category: true,
+        supplier: true,
+        },
+      });
 
     if (!product) {
       return res.status(404).json({
@@ -99,7 +105,6 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-// ID'ye göre ürün güncelle
 router.put("/:id", async (req, res) => {
   try {
     const id = Number(req.params.id);
@@ -144,7 +149,7 @@ router.put("/:id", async (req, res) => {
         message: "Güncellenecek ürün bulunamadı.",
       });
     }
-
+    
     const updatedProduct = await prisma.product.update({
       where: {
         id,
@@ -170,7 +175,6 @@ router.put("/:id", async (req, res) => {
   }
 });
 
-// ID'ye göre ürün sil
 router.delete("/:id", async (req, res) => {
   try {
     const id = Number(req.params.id);

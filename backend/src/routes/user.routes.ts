@@ -6,7 +6,11 @@ const router = Router();
 // Bütün kullanıcıları getir
 router.get("/", async (req, res) => {
   try {
-    const users = await prisma.user.findMany();
+    const users = await prisma.user.findMany({
+      include: {
+        role: true,
+      },
+    });
 
     res.status(200).json(users);
   } catch (error) {
@@ -63,6 +67,9 @@ router.get("/:id", async (req, res) => {
     const user = await prisma.user.findUnique({
       where: {
         id,
+      },
+      include: {
+        role: true,
       },
     });
 

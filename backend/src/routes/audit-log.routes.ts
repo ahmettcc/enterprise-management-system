@@ -6,7 +6,11 @@ const router = Router();
 // Bütün audit log kayıtlarını getir
 router.get("/", async (req, res) => {
   try {
-    const auditLogs = await prisma.auditLog.findMany();
+    const auditLogs = await prisma.auditLog.findMany({
+      include: {
+        user: true,
+      },
+    });
 
     res.status(200).json(auditLogs);
   } catch (error) {
@@ -67,6 +71,9 @@ router.get("/:id", async (req, res) => {
     const auditLog = await prisma.auditLog.findUnique({
       where: {
         id,
+      },
+      include: {
+        user: true,
       },
     });
 

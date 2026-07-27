@@ -18,6 +18,8 @@ model Role {
   roleName    String  @unique @map("RoleName") @db.VarChar(50)
   description String? @map("Description") @db.VarChar(255)
 
+  users User[]
+
   @@map("Roles")
 }
 
@@ -29,6 +31,8 @@ model Customer {
   email     String? @map("Email") @db.VarChar(100)
   address   String? @map("Address") @db.VarChar(255)
 
+  sales Sale[]
+
   @@map("Customers")
 }
 
@@ -36,6 +40,8 @@ model Category {
   id           Int     @id @default(autoincrement()) @map("ID")
   categoryName String  @unique @map("CategoryName") @db.VarChar(100)
   description  String? @map("Description") @db.VarChar(255)
+
+  products Product[]
 
   @@map("Categories")
 }
@@ -48,6 +54,8 @@ model Supplier {
   email         String? @map("Email") @db.VarChar(100)
   address       String? @map("Address") @db.VarChar(255)
 
+  products Product[]
+
   @@map("Suppliers")
 }
 
@@ -56,6 +64,9 @@ model Warehouse {
   warehouseName String   @map("WarehouseName") @db.VarChar(100)
   address       String?  @map("Address") @db.VarChar(255)
   createdAt     DateTime @default(now()) @map("CreatedAt")
+
+  stocks    Stock[]
+  saleItems SaleItem[]
 
   @@map("Warehouses")
 }
@@ -67,6 +78,10 @@ model User {
   email        String @unique @map("Email") @db.VarChar(100)
   passwordHash String @map("PasswordHash") @db.VarChar(255)
   roleId       Int    @map("RoleID")
+
+  role      Role       @relation(fields: [roleId], references: [id])
+  auditLogs AuditLog[]
+  sales     Sale[]
 
   @@map("Users")
 }
@@ -81,6 +96,11 @@ model Product {
   categoryId    Int     @map("CategoryID")
   supplierId    Int     @map("SupplierID")
 
+  category  Category   @relation(fields: [categoryId], references: [id])
+  supplier  Supplier   @relation(fields: [supplierId], references: [id])
+  stocks    Stock[]
+  saleItems SaleItem[]
+
   @@map("Products")
 }
 
@@ -91,6 +111,10 @@ model Stock {
   productId       Int @map("ProductID")
   warehouseId     Int @map("WarehouseID")
 
+  product   Product   @relation(fields: [productId], references: [id])
+  warehouse Warehouse @relation(fields: [warehouseId], references: [id])
+
+  @@unique([productId, warehouseId])
   @@map("Stock")
 }
 
@@ -102,16 +126,25 @@ model Sale {
   customerId    Int      @map("CustomerID")
   userId        Int      @map("UserID")
 
+  customer  Customer   @relation(fields: [customerId], references: [id])
+  user      User       @relation(fields: [userId], references: [id])
+  saleItems SaleItem[]
+
   @@map("Sales")
 }
 
 model SaleItem {
-  id         Int     @id @default(autoincrement()) @map("ID")
-  quantity   Int     @map("Quantity")
-  unitPrice  Decimal @map("UnitPrice") @db.Decimal(10, 2)
-  totalPrice Decimal @map("TotalPrice") @db.Decimal(10, 2)
-  saleId     Int     @map("SaleID")
-  productId  Int     @map("ProductID")
+  id          Int     @id @default(autoincrement()) @map("ID")
+  quantity    Int     @map("Quantity")
+  unitPrice   Decimal @map("UnitPrice") @db.Decimal(10, 2)
+  totalPrice  Decimal @map("TotalPrice") @db.Decimal(10, 2)
+  saleId      Int     @map("SaleID")
+  productId   Int     @map("ProductID")
+  warehouseId Int     @map("WarehouseID")
+
+  sale      Sale      @relation(fields: [saleId], references: [id])
+  product   Product   @relation(fields: [productId], references: [id])
+  warehouse Warehouse @relation(fields: [warehouseId], references: [id])
 
   @@map("SaleItems")
 }
@@ -123,6 +156,8 @@ model AuditLog {
   recordId  Int      @map("RecordID")
   createdAt DateTime @default(now()) @map("CreatedAt")
   userId    Int      @map("UserID")
+
+  user User @relation(fields: [userId], references: [id])
 
   @@map("AuditLogs")
 }

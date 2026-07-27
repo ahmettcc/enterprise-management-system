@@ -6,7 +6,12 @@ const router = Router();
 // Bütün satışları getir
 router.get("/", async (req, res) => {
   try {
-    const sales = await prisma.sale.findMany();
+    const sales = await prisma.sale.findMany({
+      include: {
+        customer: true,
+        user: true,
+      },
+    });
 
     res.status(200).json(sales);
   } catch (error) {
@@ -67,6 +72,10 @@ router.get("/:id", async (req, res) => {
     const sale = await prisma.sale.findUnique({
       where: {
         id,
+      },
+      include: {
+        customer: true,
+        user: true,
       },
     });
 
