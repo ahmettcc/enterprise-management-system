@@ -70,24 +70,28 @@ router.post("/", async (req, res) => {
         });
       }
 
-    const saleItem = await prisma.saleItem.create({
-      data: {
-        quantity,
-        unitPrice,
-        totalPrice,
-        saleId,
-        productId,
-        warehouseId,
-      },
-    });
-
-    await prisma.stock.update({
-      where: {
-        id: stock.id,
-      },
-      data: {
-        quantity: stock.quantity - quantity,
-      },
+    const saleItem = await prisma.$transaction(async (tx) => {
+      const createdSaleItem = await tx.saleItem.create({
+        data: {
+          quantity,
+          unitPrice,
+          totalPrice,
+          saleId,
+          productId,
+          warehouseId,
+        },
+      });
+    
+      await tx.stock.update({
+        where: {
+          id: stock.id,
+        },
+        data: {
+          quantity: stock.quantity - quantity,
+        },
+      });
+  
+      return createdSaleItem;
     });
 
     res.status(201).json(saleItem);
@@ -183,18 +187,59 @@ router.put("/:id", async (req, res) => {
       });
     }
 
-    const updatedSaleItem = await prisma.saleItem.update({
+    if (existingSaleItem.productId !== productId || existingSaleItem.warehouseId !== warehouseId){
+      return res.status(400).json({
+        message: "PUT işleminde ürün ve depo değiştirilemez.",
+      });
+    }
+    
+    const stock = await prisma.stock.findUnique({
       where: {
-        id,
+        productId_warehouseId: {
+          productId,
+          warehouseId,
+        },
       },
-      data: {
-        quantity,
-        unitPrice,
-        totalPrice,
-        saleId,
-        productId,
-        warehouseId,
-      },
+    });
+    
+    if (!stock) {
+      return res.status(404).json({
+        message: "Satış kalemine ait stok kaydı bulunamadı.",
+      });
+    }
+    
+    const quantityDifference = quantity - existingSaleItem.quantity;
+    
+    if (quantityDifference > stock.quantity) {
+      return res.status(400).json({
+        message: "Seçilen depoda yeterli stok bulunmamaktadır.",
+      });
+    }
+    const updatedSaleItem = await prisma.$transaction(async (tx) => {
+      await prisma.stock.update({
+        where: {
+          id: stock.id,
+        },
+        data: {
+          quantity: stock.quantity - quantityDifference,
+        },
+      });
+
+      const updatedSaleItem = await prisma.saleItem.update({
+        where: {
+          id,
+        },
+        data: {
+          quantity,
+          unitPrice,
+          totalPrice,
+          saleId,
+          productId,
+          warehouseId,
+        },
+      });
+      
+      return updatedSaleItem;
     });
 
     res.status(200).json(updatedSaleItem);
@@ -230,10 +275,37 @@ router.delete("/:id", async (req, res) => {
       });
     }
 
-    const deletedSaleItem = await prisma.saleItem.delete({
+    const stock = await prisma.stock.findUnique({
       where: {
-        id,
+        productId_warehouseId: {
+          productId: existingSaleItem.productId,
+          warehouseId: existingSaleItem.warehouseId,
+        },
       },
+    });
+
+    if (!stock) {
+      return res.status(404).json({
+        message: "Satış kalemine ait stok kaydı bulunamadı.",
+      });
+    }
+    const deletedSaleItem = await prisma.$transaction(async (tx) => {
+      await prisma.stock.update({
+        where: {
+          id: stock.id,
+        },
+        data: {
+          quantity: stock.quantity + existingSaleItem.quantity,
+        },
+      });
+
+      const deletedSaleItem = await prisma.saleItem.delete({
+        where: {
+          id,
+        },
+      });
+
+      return deletedSaleItem;
     });
 
     res.status(200).json({
