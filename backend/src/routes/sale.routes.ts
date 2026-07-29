@@ -30,12 +30,30 @@ router.post("/", async (req, res) => {
 
     if (
       totalAmount === undefined ||
-      !paymentMethod ||
+      paymentMethod === undefined ||
       customerId === undefined ||
       userId === undefined
     ) {
       return res.status(400).json({
         message: "Zorunlu satış bilgileri eksiktir.",
+      });
+    }
+
+    if (!Number.isFinite(totalAmount) || totalAmount <= 0) {
+      return res.status(400).json({
+        message: "Toplam tutar pozitif bir sayı olmalıdır.",
+      });
+    }
+
+    if (typeof paymentMethod !== "string" || paymentMethod.trim().length === 0) {
+      return res.status(400).json({
+        message: "Ödeme yöntemi boş olamaz.",
+      });
+    }
+
+    if (!Number.isInteger(customerId) || customerId <= 0 || !Number.isInteger(userId) || userId <= 0) {
+      return res.status(400).json({
+        message: "Müşteri ve kullanıcı ID değerleri pozitif tam sayı olmalıdır.",
       });
     }
 
@@ -116,6 +134,24 @@ router.put("/:id", async (req, res) => {
     ) {
       return res.status(400).json({
         message: "Zorunlu satış bilgileri eksiktir.",
+      });
+    }
+
+    if (!Number.isFinite(totalAmount) || totalAmount <= 0) {
+      return res.status(400).json({
+        message: "Toplam tutar pozitif bir sayı olmalıdır.",
+      });
+    }
+
+    if (typeof paymentMethod !== "string" || paymentMethod.trim().length === 0) {
+      return res.status(400).json({
+        message: "Ödeme yöntemi boş olamaz.",
+      });
+    }
+
+    if (!Number.isInteger(customerId) || customerId <= 0 || !Number.isInteger(userId) || userId <= 0) {
+      return res.status(400).json({
+        message: "Müşteri ve kullanıcı ID değerleri pozitif tam sayı olmalıdır.",
       });
     }
 

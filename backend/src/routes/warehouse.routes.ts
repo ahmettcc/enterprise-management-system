@@ -23,16 +23,19 @@ router.post("/", async (req, res) => {
   try {
     const { warehouseName, address } = req.body;
 
-    if (!warehouseName) {
+    if (typeof warehouseName !== "string" || warehouseName.trim().length === 0) {
       return res.status(400).json({
-        message: "Depo adı zorunludur.",
+        message: "Depo adı boş olamaz.",
       });
     }
 
     const warehouse = await prisma.warehouse.create({
       data: {
-        warehouseName,
-        address: address ?? null,
+        warehouseName: warehouseName.trim(),
+        address:
+          typeof address === "string" && address.trim() !== ""
+            ? address.trim()
+            : null,
       },
     });
 
@@ -84,7 +87,7 @@ router.put("/:id", async (req, res) => {
   try {
     const id = Number(req.params.id);
 
-    if (Number.isNaN(id)) {
+    if (!Number.isInteger(id) || id <= 0) {
       return res.status(400).json({
         message: "Geçerli bir depo ID'si girilmelidir.",
       });
@@ -92,9 +95,9 @@ router.put("/:id", async (req, res) => {
 
     const { warehouseName, address } = req.body;
 
-    if (!warehouseName) {
+    if (typeof warehouseName !== "string" || warehouseName.trim().length === 0) {
       return res.status(400).json({
-        message: "Depo adı zorunludur.",
+        message: "Depo adı boş olamaz.",
       });
     }
 
@@ -115,9 +118,12 @@ router.put("/:id", async (req, res) => {
         id,
       },
       data: {
-        warehouseName,
-        address: address ?? null,
-      },
+      warehouseName: warehouseName.trim(),
+      address:
+        typeof address === "string" && address.trim() !== ""
+          ? address.trim()
+          : null,
+    },
     });
 
     res.status(200).json(updatedWarehouse);

@@ -27,21 +27,28 @@ router.post("/", async (req, res) => {
   try {
     const { action, tableName, recordId, userId } = req.body;
 
-    if (
-      !action ||
-      !tableName ||
-      recordId === undefined ||
-      userId === undefined
-    ) {
+    if (action === undefined || tableName === undefined || recordId === undefined || userId === undefined) {
       return res.status(400).json({
         message: "Tüm audit log bilgileri zorunludur.",
+      });
+    }
+    
+    if (typeof action !== "string" || action.trim().length === 0 || typeof tableName !== "string" || tableName.trim().length === 0) {
+      return res.status(400).json({
+        message: "İşlem ve tablo adı boş olamaz.",
+      });
+    }
+    
+    if (!Number.isInteger(recordId) || recordId <= 0 || !Number.isInteger(userId) || userId <= 0) {
+      return res.status(400).json({
+        message: "Kayıt ve kullanıcı ID değerleri pozitif tam sayı olmalıdır.",
       });
     }
 
     const auditLog = await prisma.auditLog.create({
       data: {
-        action,
-        tableName,
+        action: action.trim(),
+        tableName: tableName.trim(),
         recordId,
         userId,
       },
@@ -98,7 +105,7 @@ router.put("/:id", async (req, res) => {
   try {
     const id = Number(req.params.id);
 
-    if (Number.isNaN(id)) {
+    if (!Number.isInteger(id) || id <= 0) {
       return res.status(400).json({
         message: "Geçerli bir audit log ID'si girilmelidir.",
       });
@@ -106,14 +113,21 @@ router.put("/:id", async (req, res) => {
 
     const { action, tableName, recordId, userId } = req.body;
 
-    if (
-      !action ||
-      !tableName ||
-      recordId === undefined ||
-      userId === undefined
-    ) {
+    if (action === undefined || tableName === undefined || recordId === undefined || userId === undefined) {
       return res.status(400).json({
         message: "Tüm audit log bilgileri zorunludur.",
+      });
+    }
+    
+    if (typeof action !== "string" || action.trim().length === 0 || typeof tableName !== "string" || tableName.trim().length === 0) {
+      return res.status(400).json({
+        message: "İşlem ve tablo adı boş olamaz.",
+      });
+    }
+    
+    if (!Number.isInteger(recordId) || recordId <= 0 || !Number.isInteger(userId) || userId <= 0) {
+      return res.status(400).json({
+        message: "Kayıt ve kullanıcı ID değerleri pozitif tam sayı olmalıdır.",
       });
     }
 
@@ -134,8 +148,8 @@ router.put("/:id", async (req, res) => {
         id,
       },
       data: {
-        action,
-        tableName,
+        action: action.trim(),
+        tableName: tableName.trim(),
         recordId,
         userId,
       },

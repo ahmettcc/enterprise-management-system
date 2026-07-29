@@ -23,19 +23,37 @@ router.post("/", async (req, res) => {
   try {
     const { firstName, lastName, phone, email, address } = req.body;
 
-    if (!firstName || !lastName) {
+    if (typeof firstName !== "string" || firstName.trim().length === 0 || typeof lastName !== "string" || lastName.trim().length === 0) {
       return res.status(400).json({
-        message: "Müşteri adı ve soyadı zorunludur.",
+        message: "Müşteri adı ve soyadı boş olamaz.",
+      });
+    }
+
+    if (email !== undefined && email !== null && (typeof email !== "string" || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim()))) {
+      return res.status(400).json({
+        message: "Geçerli bir e-posta adresi girilmelidir.",
+      });
+    }
+
+    if (phone !== undefined && phone !== null && typeof phone !== "string") {
+      return res.status(400).json({
+        message: "Telefon bilgisi metin olmalıdır.",
       });
     }
 
     const customer = await prisma.customer.create({
       data: {
-        firstName,
-        lastName,
-        phone: phone ?? null,
-        email: email ?? null,
-        address: address ?? null,
+        firstName: firstName.trim(),
+        lastName: lastName.trim(),
+        phone: typeof phone === "string" && phone.trim() !== ""
+          ? phone.trim()
+          : null,
+        email: typeof email === "string" && email.trim() !== ""
+          ? email.trim()
+          : null,
+        address: typeof address === "string" && address.trim() !== ""
+          ? address.trim()
+          : null,
       },
     });
 
@@ -87,7 +105,7 @@ router.put("/:id", async (req, res) => {
   try {
     const id = Number(req.params.id);
 
-    if (Number.isNaN(id)) {
+    if (!Number.isInteger(id) || id <= 0) {
       return res.status(400).json({
         message: "Geçerli bir müşteri ID'si girilmelidir.",
       });
@@ -95,21 +113,21 @@ router.put("/:id", async (req, res) => {
 
     const { firstName, lastName, phone, email, address } = req.body;
 
-    if (!firstName || !lastName) {
+    if (typeof firstName !== "string" || firstName.trim().length === 0 || typeof lastName !== "string" || lastName.trim().length === 0) {
       return res.status(400).json({
-        message: "Müşteri adı ve soyadı zorunludur.",
+        message: "Müşteri adı ve soyadı boş olamaz.",
       });
     }
 
-    const existingCustomer = await prisma.customer.findUnique({
-      where: {
-        id,
-      },
-    });
+    if (email !== undefined && email !== null && (typeof email !== "string" || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim()))) {
+      return res.status(400).json({
+        message: "Geçerli bir e-posta adresi girilmelidir.",
+      });
+    }
 
-    if (!existingCustomer) {
-      return res.status(404).json({
-        message: "Güncellenecek müşteri bulunamadı.",
+    if (phone !== undefined && phone !== null && typeof phone !== "string") {
+      return res.status(400).json({
+        message: "Telefon bilgisi metin olmalıdır.",
       });
     }
 
@@ -118,11 +136,17 @@ router.put("/:id", async (req, res) => {
         id,
       },
       data: {
-        firstName,
-        lastName,
-        phone: phone ?? null,
-        email: email ?? null,
-        address: address ?? null,
+        firstName: firstName.trim(),
+        lastName: lastName.trim(),
+        phone: typeof phone === "string" && phone.trim() !== ""
+          ? phone.trim()
+          : null,
+        email: typeof email === "string" && email.trim() !== ""
+          ? email.trim()
+          : null,
+        address: typeof address === "string" && address.trim() !== ""
+          ? address.trim()
+          : null,
       },
     });
 

@@ -65,8 +65,8 @@ model Warehouse {
   address       String?  @map("Address") @db.VarChar(255)
   createdAt     DateTime @default(now()) @map("CreatedAt")
 
-  stocks    Stock[]
-  saleItems SaleItem[]
+  stocks      Stock[]
+  saleDetails SaleDetail[]
 
   @@map("Warehouses")
 }
@@ -96,10 +96,10 @@ model Product {
   categoryId    Int     @map("CategoryID")
   supplierId    Int     @map("SupplierID")
 
-  category  Category   @relation(fields: [categoryId], references: [id])
-  supplier  Supplier   @relation(fields: [supplierId], references: [id])
-  stocks    Stock[]
-  saleItems SaleItem[]
+  category    Category     @relation(fields: [categoryId], references: [id])
+  supplier    Supplier     @relation(fields: [supplierId], references: [id])
+  stocks      Stock[]
+  saleDetails SaleDetail[]
 
   @@map("Products")
 }
@@ -126,14 +126,14 @@ model Sale {
   customerId    Int      @map("CustomerID")
   userId        Int      @map("UserID")
 
-  customer  Customer   @relation(fields: [customerId], references: [id])
-  user      User       @relation(fields: [userId], references: [id])
-  saleItems SaleItem[]
+  customer    Customer     @relation(fields: [customerId], references: [id])
+  user        User         @relation(fields: [userId], references: [id])
+  saleDetails SaleDetail[]
 
   @@map("Sales")
 }
 
-model SaleItem {
+model SaleDetail {
   id          Int     @id @default(autoincrement()) @map("ID")
   quantity    Int     @map("Quantity")
   unitPrice   Decimal @map("UnitPrice") @db.Decimal(10, 2)
@@ -146,7 +146,7 @@ model SaleItem {
   product   Product   @relation(fields: [productId], references: [id])
   warehouse Warehouse @relation(fields: [warehouseId], references: [id])
 
-  @@map("SaleItems")
+  @@map("SaleDetails")
 }
 
 model AuditLog {

@@ -27,9 +27,27 @@ router.post("/", async (req, res) => {
   try {
     const { firstName, lastName, email, passwordHash, roleId } = req.body;
 
-    if (!firstName || !lastName || !email || !passwordHash || roleId === undefined) {
+    if (typeof firstName !== "string" || firstName.trim().length === 0 || typeof lastName !== "string" || lastName.trim().length === 0) {
       return res.status(400).json({
-        message: "Ad, soyad, e-posta, şifre ve rol ID zorunludur.",
+        message: "Ad ve soyad boş olamaz.",
+      });
+    }
+
+    if (typeof email !== "string" || !email.includes("@") || !email.includes(".")) {
+      return res.status(400).json({
+        message: "Geçerli bir e-posta adresi girilmelidir.",
+      });
+    }
+
+    if (typeof passwordHash !== "string" || passwordHash.trim().length === 0) {
+      return res.status(400).json({
+        message: "Şifre boş olamaz.",
+      });
+    }
+
+    if (!Number.isInteger(roleId) || roleId <= 0) {
+      return res.status(400).json({
+        message: "Rol ID pozitif bir tam sayı olmalıdır.",
       });
     }
 

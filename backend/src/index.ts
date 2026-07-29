@@ -9,7 +9,7 @@ import userRoutes from "./routes/user.routes.js";
 import productRoutes from "./routes/product.routes.js";
 import stockRoutes from "./routes/stock.routes.js";
 import saleRoutes from "./routes/sale.routes.js";
-import saleItemRoutes from "./routes/sale-item.routes.js";
+import saleDetailRoutes from "./routes/sale-detail.routes.js";
 import auditLogRoutes from "./routes/audit-log.routes.js";
 
 const app = express();
@@ -25,7 +25,7 @@ app.use("/api/users", userRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/stocks", stockRoutes);
 app.use("/api/sales", saleRoutes);
-app.use("/api/sale-items", saleItemRoutes);
+app.use("/api/sale-details", saleDetailRoutes);
 app.use("/api/audit-logs", auditLogRoutes);
 
 app.get("/", (req, res) => {

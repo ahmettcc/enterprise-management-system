@@ -23,16 +23,19 @@ router.post("/", async (req, res) => {
   try {
     const { categoryName, description } = req.body;
 
-    if (!categoryName) {
+    if (typeof categoryName !== "string" || categoryName.trim().length === 0) {
       return res.status(400).json({
-        message: "Kategori adı zorunludur.",
+        message: "Kategori adı boş olamaz.",
       });
     }
 
     const category = await prisma.category.create({
       data: {
-        categoryName,
-        description: description ?? null,
+        categoryName: categoryName.trim(),
+        description:
+          typeof description === "string" && description.trim() !== ""
+            ? description.trim()
+            : null,
       },
     });
 
@@ -84,7 +87,7 @@ router.put("/:id", async (req, res) => {
   try {
     const id = Number(req.params.id);
 
-    if (Number.isNaN(id)) {
+    if (!Number.isInteger(id) || id <= 0) {
       return res.status(400).json({
         message: "Geçerli bir kategori ID'si girilmelidir.",
       });
@@ -92,9 +95,9 @@ router.put("/:id", async (req, res) => {
 
     const { categoryName, description } = req.body;
 
-    if (!categoryName) {
+    if (typeof categoryName !== "string" || categoryName.trim().length === 0) {
       return res.status(400).json({
-        message: "Kategori adı zorunludur.",
+        message: "Kategori adı boş olamaz.",
       });
     }
 
@@ -115,8 +118,11 @@ router.put("/:id", async (req, res) => {
         id,
       },
       data: {
-        categoryName,
-        description: description ?? null,
+        categoryName: categoryName.trim(),
+        description:
+          typeof description === "string" && description.trim() !== ""
+            ? description.trim()
+            : null,
       },
     });
 

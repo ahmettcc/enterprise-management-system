@@ -34,6 +34,12 @@ router.post("/", async (req, res) => {
       supplierId,
     } = req.body;
 
+    if (typeof barcode !== "string" || barcode.trim().length === 0 || typeof productName !== "string" || productName.trim().length === 0) {
+      return res.status(400).json({
+        message: "Barkod ve ürün adı boş olamaz.",
+      });
+    }
+
     if (
       !barcode ||
       !productName ||
@@ -44,6 +50,18 @@ router.post("/", async (req, res) => {
     ) {
       return res.status(400).json({
         message: "Zorunlu ürün bilgileri eksiktir.",
+      });
+    }
+
+    if (!Number.isFinite(purchasePrice) || purchasePrice <= 0 || !Number.isFinite(salePrice) || salePrice <= 0) {
+      return res.status(400).json({
+        message: "Alış ve satış fiyatı pozitif bir sayı olmalıdır.",
+      });
+    }
+
+    if (!Number.isInteger(categoryId) || categoryId <= 0 || !Number.isInteger(supplierId) || supplierId <= 0) {
+      return res.status(400).json({
+        message: "Kategori ve tedarikçi ID değerleri pozitif tam sayı olmalıdır.",
       });
     }
 
@@ -125,6 +143,12 @@ router.put("/:id", async (req, res) => {
       supplierId,
     } = req.body;
 
+    if (typeof barcode !== "string" || barcode.trim().length === 0 || typeof productName !== "string" || productName.trim().length === 0) {
+      return res.status(400).json({
+        message: "Barkod ve ürün adı boş olamaz.",
+      });
+    }
+
     if (
       !barcode ||
       !productName ||
@@ -135,6 +159,18 @@ router.put("/:id", async (req, res) => {
     ) {
       return res.status(400).json({
         message: "Zorunlu ürün bilgileri eksiktir.",
+      });
+    }
+
+    if (!Number.isFinite(purchasePrice) || purchasePrice <= 0 || !Number.isFinite(salePrice) || salePrice <= 0) {
+      return res.status(400).json({
+        message: "Alış ve satış fiyatı pozitif bir sayı olmalıdır.",
+      });
+    }
+
+    if (!Number.isInteger(categoryId) || categoryId <= 0 || !Number.isInteger(supplierId) || supplierId <= 0) {
+      return res.status(400).json({
+        message: "Kategori ve tedarikçi ID değerleri pozitif tam sayı olmalıdır.",
       });
     }
 

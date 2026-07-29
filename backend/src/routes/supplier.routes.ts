@@ -23,21 +23,49 @@ router.post("/", async (req, res) => {
   try {
     const { companyName, contactPerson, phone, email, address } = req.body;
 
-    if (!companyName) {
+    if (typeof companyName !== "string" || companyName.trim().length === 0) {
       return res.status(400).json({
-        message: "Şirket adı zorunludur.",
+        message: "Şirket adı boş olamaz.",
+      });
+    }
+
+    if (email !== undefined && email !== null && (typeof email !== "string" || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim()))) {
+      return res.status(400).json({
+        message: "Geçerli bir e-posta adresi girilmelidir.",
+      });
+    }
+
+    if (phone !== undefined && phone !== null && typeof phone !== "string") {
+      return res.status(400).json({
+        message: "Telefon bilgisi metin olmalıdır.",
       });
     }
 
     const supplier = await prisma.supplier.create({
-      data: {
-        companyName,
-        contactPerson: contactPerson ?? null,
-        phone: phone ?? null,
-        email: email ?? null,
-        address: address ?? null,
-      },
-    });
+    data: {
+      companyName: companyName.trim(),
+
+      contactPerson:
+        typeof contactPerson === "string" && contactPerson.trim() !== ""
+          ? contactPerson.trim()
+          : null,
+
+      phone:
+        typeof phone === "string" && phone.trim() !== ""
+          ? phone.trim()
+          : null,
+
+      email:
+        typeof email === "string" && email.trim() !== ""
+          ? email.trim()
+          : null,
+
+      address:
+        typeof address === "string" && address.trim() !== ""
+          ? address.trim()
+          : null,
+    },
+  });
 
     res.status(201).json(supplier);
   } catch (error) {
@@ -87,7 +115,7 @@ router.put("/:id", async (req, res) => {
   try {
     const id = Number(req.params.id);
 
-    if (Number.isNaN(id)) {
+    if (!Number.isInteger(id) || id <= 0) {
       return res.status(400).json({
         message: "Geçerli bir tedarikçi ID'si girilmelidir.",
       });
@@ -95,9 +123,21 @@ router.put("/:id", async (req, res) => {
 
     const { companyName, contactPerson, phone, email, address } = req.body;
 
-    if (!companyName) {
+    if (typeof companyName !== "string" || companyName.trim().length === 0) {
       return res.status(400).json({
-        message: "Şirket adı zorunludur.",
+        message: "Şirket adı boş olamaz.",
+      });
+    }
+
+    if (email !== undefined && email !== null && (typeof email !== "string" || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim()))) {
+      return res.status(400).json({
+        message: "Geçerli bir e-posta adresi girilmelidir.",
+      });
+    }
+
+    if (phone !== undefined && phone !== null && typeof phone !== "string") {
+      return res.status(400).json({
+        message: "Telefon bilgisi metin olmalıdır.",
       });
     }
 
@@ -118,11 +158,27 @@ router.put("/:id", async (req, res) => {
         id,
       },
       data: {
-        companyName,
-        contactPerson: contactPerson ?? null,
-        phone: phone ?? null,
-        email: email ?? null,
-        address: address ?? null,
+        companyName: companyName.trim(),
+            
+        contactPerson:
+          typeof contactPerson === "string" && contactPerson.trim() !== ""
+            ? contactPerson.trim()
+            : null,
+            
+        phone:
+          typeof phone === "string" && phone.trim() !== ""
+            ? phone.trim()
+            : null,
+            
+        email:
+          typeof email === "string" && email.trim() !== ""
+            ? email.trim()
+            : null,
+            
+        address:
+          typeof address === "string" && address.trim() !== ""
+            ? address.trim()
+            : null,
       },
     });
 

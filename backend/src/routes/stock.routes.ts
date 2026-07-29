@@ -39,6 +39,18 @@ router.post("/", async (req, res) => {
       });
     }
 
+    if (!Number.isInteger(quantity) || quantity < 0 || !Number.isInteger(minimumQuantity) || minimumQuantity < 0) {
+      return res.status(400).json({
+        message: "Stok miktarları sıfır veya pozitif tam sayı olmalıdır.",
+      });
+    }
+
+    if (!Number.isInteger(productId) || productId <= 0 || !Number.isInteger(warehouseId) || warehouseId <= 0) {
+      return res.status(400).json({
+        message: "Ürün ve depo ID değerleri pozitif tam sayı olmalıdır.",
+      });
+    }
+
     const stock = await prisma.stock.create({
       data: {
         quantity,
@@ -124,6 +136,18 @@ router.put("/:id", async (req, res) => {
     ) {
       return res.status(400).json({
         message: "Tüm stok bilgileri zorunludur.",
+      });
+    }
+
+    if (!Number.isInteger(quantity) || quantity < 0 || !Number.isInteger(minimumQuantity) || minimumQuantity < 0) {
+      return res.status(400).json({
+        message: "Stok miktarları sıfır veya pozitif tam sayı olmalıdır.",
+      });
+    }
+
+    if (!Number.isInteger(productId) || productId <= 0 || !Number.isInteger(warehouseId) || warehouseId <= 0) {
+      return res.status(400).json({
+        message: "Ürün ve depo ID değerleri pozitif tam sayı olmalıdır.",
       });
     }
 

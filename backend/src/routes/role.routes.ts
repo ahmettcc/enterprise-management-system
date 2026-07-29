@@ -23,18 +23,19 @@ router.post("/", async (req, res) => {
   try {
     const { roleName, description } = req.body;
 
-    if (!roleName) {
-      res.status(400).json({
-        message: "Rol adı zorunludur.",
+    if (typeof roleName !== "string" || roleName.trim().length === 0) {
+      return res.status(400).json({
+        message: "Rol adı boş olamaz.",
       });
-
-      return;
     }
 
     const role = await prisma.role.create({
       data: {
-        roleName,
-        description,
+        roleName: roleName.trim(),
+        description:
+          typeof description === "string" && description.trim() !== ""
+            ? description.trim()
+            : null,
       },
     });
 
@@ -86,7 +87,7 @@ router.put("/:id", async (req, res) => {
   try {
     const id = Number(req.params.id);
 
-    if (Number.isNaN(id)) {
+    if (!Number.isInteger(id) || id <= 0) {
       return res.status(400).json({
         message: "Geçerli bir rol ID'si girilmelidir.",
       });
@@ -94,9 +95,12 @@ router.put("/:id", async (req, res) => {
 
     const { roleName, description } = req.body;
 
-    if (!roleName) {
+    if (
+      typeof roleName !== "string" ||
+      roleName.trim().length === 0
+    ) {
       return res.status(400).json({
-        message: "Rol adı zorunludur.",
+        message: "Rol adı boş olamaz.",
       });
     }
 
@@ -117,8 +121,11 @@ router.put("/:id", async (req, res) => {
         id,
       },
       data: {
-        roleName,
-        description: description ?? null,
+        roleName: roleName.trim(),
+        description:
+          typeof description === "string" && description.trim() !== ""
+            ? description.trim()
+            : null,
       },
     });
 
