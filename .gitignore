@@ -22,3 +22,5 @@ Thumbs.db
 backend/src/generated/prisma/
 
 backend/dist/
+
+NOT.md
