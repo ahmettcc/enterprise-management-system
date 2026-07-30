@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { prisma } from "../lib/prisma.js";
+import { Validation } from "../validations/validations.js";
 
 const router = Router();
 
@@ -23,11 +24,7 @@ router.post("/", async (req, res) => {
   try {
     const { warehouseName, address } = req.body;
 
-    if (typeof warehouseName !== "string" || warehouseName.trim().length === 0) {
-      return res.status(400).json({
-        message: "Depo adı boş olamaz.",
-      });
-    }
+    if (!Validation.warehouseValidation(req.body, res)) return;
 
     const warehouse = await prisma.warehouse.create({
       data: {
@@ -52,13 +49,9 @@ router.post("/", async (req, res) => {
 // ID'ye göre tek depo getir
 router.get("/:id", async (req, res) => {
   try {
-    const id = Number(req.params.id);
+    const id = Validation.idValidation(req.params.id, res, "depo");
 
-    if (Number.isNaN(id)) {
-      return res.status(400).json({
-        message: "Geçerli bir depo ID'si girilmelidir.",
-      });
-    }
+    if (id === null) return;
 
     const warehouse = await prisma.warehouse.findUnique({
       where: {
@@ -85,21 +78,13 @@ router.get("/:id", async (req, res) => {
 // ID'ye göre depo güncelle
 router.put("/:id", async (req, res) => {
   try {
-    const id = Number(req.params.id);
+    const id = Validation.idValidation(req.params.id, res, "depo");
 
-    if (!Number.isInteger(id) || id <= 0) {
-      return res.status(400).json({
-        message: "Geçerli bir depo ID'si girilmelidir.",
-      });
-    }
+    if (id === null) return;
 
     const { warehouseName, address } = req.body;
 
-    if (typeof warehouseName !== "string" || warehouseName.trim().length === 0) {
-      return res.status(400).json({
-        message: "Depo adı boş olamaz.",
-      });
-    }
+    if (!Validation.warehouseValidation(req.body, res)) return;
 
     const existingWarehouse = await prisma.warehouse.findUnique({
       where: {
@@ -139,13 +124,9 @@ router.put("/:id", async (req, res) => {
 // ID'ye göre depo sil
 router.delete("/:id", async (req, res) => {
   try {
-    const id = Number(req.params.id);
+    const id = Validation.idValidation(req.params.id, res, "depo");
 
-    if (Number.isNaN(id)) {
-      return res.status(400).json({
-        message: "Geçerli bir depo ID'si girilmelidir.",
-      });
-    }
+    if (id === null) return;
 
     const existingWarehouse = await prisma.warehouse.findUnique({
       where: {

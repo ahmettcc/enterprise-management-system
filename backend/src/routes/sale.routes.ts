@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { prisma } from "../lib/prisma.js";
+import { Validation } from "../validations/validations.js";
 
 const router = Router();
 
@@ -28,34 +29,7 @@ router.post("/", async (req, res) => {
   try {
     const { totalAmount, paymentMethod, customerId, userId } = req.body;
 
-    if (
-      totalAmount === undefined ||
-      paymentMethod === undefined ||
-      customerId === undefined ||
-      userId === undefined
-    ) {
-      return res.status(400).json({
-        message: "Zorunlu satış bilgileri eksiktir.",
-      });
-    }
-
-    if (!Number.isFinite(totalAmount) || totalAmount <= 0) {
-      return res.status(400).json({
-        message: "Toplam tutar pozitif bir sayı olmalıdır.",
-      });
-    }
-
-    if (typeof paymentMethod !== "string" || paymentMethod.trim().length === 0) {
-      return res.status(400).json({
-        message: "Ödeme yöntemi boş olamaz.",
-      });
-    }
-
-    if (!Number.isInteger(customerId) || customerId <= 0 || !Number.isInteger(userId) || userId <= 0) {
-      return res.status(400).json({
-        message: "Müşteri ve kullanıcı ID değerleri pozitif tam sayı olmalıdır.",
-      });
-    }
+    if (!Validation.saleValidation(req.body, res)) return;
 
     const sale = await prisma.sale.create({
       data: {
@@ -79,13 +53,9 @@ router.post("/", async (req, res) => {
 // ID'ye göre tek satış getir
 router.get("/:id", async (req, res) => {
   try {
-    const id = Number(req.params.id);
+    const id = Validation.idValidation(req.params.id, res, "satış");
 
-    if (Number.isNaN(id)) {
-      return res.status(400).json({
-        message: "Geçerli bir satış ID'si girilmelidir.",
-      });
-    }
+    if (id === null) return;
 
     const sale = await prisma.sale.findUnique({
       where: {
@@ -116,44 +86,13 @@ router.get("/:id", async (req, res) => {
 // ID'ye göre satış güncelle
 router.put("/:id", async (req, res) => {
   try {
-    const id = Number(req.params.id);
+    const id = Validation.idValidation(req.params.id, res, "satış");
 
-    if (Number.isNaN(id)) {
-      return res.status(400).json({
-        message: "Geçerli bir satış ID'si girilmelidir.",
-      });
-    }
+    if (id === null) return;
 
     const { totalAmount, paymentMethod, customerId, userId } = req.body;
 
-    if (
-      totalAmount === undefined ||
-      !paymentMethod ||
-      customerId === undefined ||
-      userId === undefined
-    ) {
-      return res.status(400).json({
-        message: "Zorunlu satış bilgileri eksiktir.",
-      });
-    }
-
-    if (!Number.isFinite(totalAmount) || totalAmount <= 0) {
-      return res.status(400).json({
-        message: "Toplam tutar pozitif bir sayı olmalıdır.",
-      });
-    }
-
-    if (typeof paymentMethod !== "string" || paymentMethod.trim().length === 0) {
-      return res.status(400).json({
-        message: "Ödeme yöntemi boş olamaz.",
-      });
-    }
-
-    if (!Number.isInteger(customerId) || customerId <= 0 || !Number.isInteger(userId) || userId <= 0) {
-      return res.status(400).json({
-        message: "Müşteri ve kullanıcı ID değerleri pozitif tam sayı olmalıdır.",
-      });
-    }
+    if (!Validation.saleValidation(req.body, res)) return;
 
     const existingSale = await prisma.sale.findUnique({
       where: {
@@ -192,13 +131,9 @@ router.put("/:id", async (req, res) => {
 // ID'ye göre satış sil
 router.delete("/:id", async (req, res) => {
   try {
-    const id = Number(req.params.id);
+    const id = Validation.idValidation(req.params.id, res, "satış");
 
-    if (Number.isNaN(id)) {
-      return res.status(400).json({
-        message: "Geçerli bir satış ID'si girilmelidir.",
-      });
-    }
+    if (id === null) return;
 
     const existingSale = await prisma.sale.findUnique({
       where: {

@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { prisma } from "../lib/prisma.js";
+import { Validation } from "../validations/validations.js";
 
 const router = Router();
 
@@ -23,11 +24,7 @@ router.post("/", async (req, res) => {
   try {
     const { categoryName, description } = req.body;
 
-    if (typeof categoryName !== "string" || categoryName.trim().length === 0) {
-      return res.status(400).json({
-        message: "Kategori adı boş olamaz.",
-      });
-    }
+    if (!Validation.categoryValidation(req.body, res)) return;
 
     const category = await prisma.category.create({
       data: {
@@ -52,13 +49,13 @@ router.post("/", async (req, res) => {
 // ID'ye göre tek kategori getir
 router.get("/:id", async (req, res) => {
   try {
-    const id = Number(req.params.id);
-
-    if (Number.isNaN(id)) {
-      return res.status(400).json({
-        message: "Geçerli bir kategori ID'si girilmelidir.",
-      });
-    }
+    const id = Validation.idValidation(
+      req.params.id,
+      res,
+      "kategori"
+    );
+    
+    if (id === null) return;
 
     const category = await prisma.category.findUnique({
       where: {
@@ -85,21 +82,17 @@ router.get("/:id", async (req, res) => {
 // ID'ye göre kategori güncelle
 router.put("/:id", async (req, res) => {
   try {
-    const id = Number(req.params.id);
-
-    if (!Number.isInteger(id) || id <= 0) {
-      return res.status(400).json({
-        message: "Geçerli bir kategori ID'si girilmelidir.",
-      });
-    }
+    const id = Validation.idValidation(
+      req.params.id,
+      res,
+      "kategori"
+    );
+    
+    if (id === null) return;
 
     const { categoryName, description } = req.body;
 
-    if (typeof categoryName !== "string" || categoryName.trim().length === 0) {
-      return res.status(400).json({
-        message: "Kategori adı boş olamaz.",
-      });
-    }
+    if (!Validation.categoryValidation(req.body, res)) return;
 
     const existingCategory = await prisma.category.findUnique({
       where: {
@@ -121,7 +114,7 @@ router.put("/:id", async (req, res) => {
         categoryName: categoryName.trim(),
         description:
           typeof description === "string" && description.trim() !== ""
-            ? description.trim()
+          ? description.trim()
             : null,
       },
     });
@@ -139,13 +132,13 @@ router.put("/:id", async (req, res) => {
 // ID'ye göre kategori sil
 router.delete("/:id", async (req, res) => {
   try {
-    const id = Number(req.params.id);
-
-    if (Number.isNaN(id)) {
-      return res.status(400).json({
-        message: "Geçerli bir kategori ID'si girilmelidir.",
-      });
-    }
+    const id = Validation.idValidation(
+      req.params.id,
+      res,
+      "kategori"
+    );
+    
+    if (id === null) return;
 
     const existingCategory = await prisma.category.findUnique({
       where: {

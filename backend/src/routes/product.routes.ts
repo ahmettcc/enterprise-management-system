@@ -1,8 +1,10 @@
 import { Router } from "express";
 import { prisma } from "../lib/prisma.js";
+import { Validation } from "../validations/validations.js";
 
 const router = Router();
 
+// Bütün ürünleri getir
 router.get("/", async (req, res) => {
   try {
     const products = await prisma.product.findMany({
@@ -22,6 +24,7 @@ router.get("/", async (req, res) => {
   }
 });
 
+// Yeni ürün ekle
 router.post("/", async (req, res) => {
   try {
     const {
@@ -34,36 +37,7 @@ router.post("/", async (req, res) => {
       supplierId,
     } = req.body;
 
-    if (typeof barcode !== "string" || barcode.trim().length === 0 || typeof productName !== "string" || productName.trim().length === 0) {
-      return res.status(400).json({
-        message: "Barkod ve ürün adı boş olamaz.",
-      });
-    }
-
-    if (
-      !barcode ||
-      !productName ||
-      purchasePrice === undefined ||
-      salePrice === undefined ||
-      categoryId === undefined ||
-      supplierId === undefined
-    ) {
-      return res.status(400).json({
-        message: "Zorunlu ürün bilgileri eksiktir.",
-      });
-    }
-
-    if (!Number.isFinite(purchasePrice) || purchasePrice <= 0 || !Number.isFinite(salePrice) || salePrice <= 0) {
-      return res.status(400).json({
-        message: "Alış ve satış fiyatı pozitif bir sayı olmalıdır.",
-      });
-    }
-
-    if (!Number.isInteger(categoryId) || categoryId <= 0 || !Number.isInteger(supplierId) || supplierId <= 0) {
-      return res.status(400).json({
-        message: "Kategori ve tedarikçi ID değerleri pozitif tam sayı olmalıdır.",
-      });
-    }
+    if (!Validation.productValidation(req.body, res)) return;
 
     const product = await prisma.product.create({
       data: {
@@ -87,15 +61,12 @@ router.post("/", async (req, res) => {
   }
 });
 
+// ID ile ürün getir
 router.get("/:id", async (req, res) => {
   try {
-    const id = Number(req.params.id);
+    const id = Validation.idValidation(req.params.id, res, "ürün");
 
-    if (Number.isNaN(id)) {
-      return res.status(400).json({
-        message: "Geçerli bir ürün ID'si girilmelidir.",
-      });
-    }
+    if (id === null) return;
 
     const product = await prisma.product.findUnique({
       where: {
@@ -123,15 +94,12 @@ router.get("/:id", async (req, res) => {
   }
 });
 
+// ID ile ürün güncelle
 router.put("/:id", async (req, res) => {
   try {
-    const id = Number(req.params.id);
+    const id = Validation.idValidation(req.params.id, res, "ürün");
 
-    if (Number.isNaN(id)) {
-      return res.status(400).json({
-        message: "Geçerli bir ürün ID'si girilmelidir.",
-      });
-    }
+    if (id === null) return;
 
     const {
       barcode,
@@ -143,36 +111,7 @@ router.put("/:id", async (req, res) => {
       supplierId,
     } = req.body;
 
-    if (typeof barcode !== "string" || barcode.trim().length === 0 || typeof productName !== "string" || productName.trim().length === 0) {
-      return res.status(400).json({
-        message: "Barkod ve ürün adı boş olamaz.",
-      });
-    }
-
-    if (
-      !barcode ||
-      !productName ||
-      purchasePrice === undefined ||
-      salePrice === undefined ||
-      categoryId === undefined ||
-      supplierId === undefined
-    ) {
-      return res.status(400).json({
-        message: "Zorunlu ürün bilgileri eksiktir.",
-      });
-    }
-
-    if (!Number.isFinite(purchasePrice) || purchasePrice <= 0 || !Number.isFinite(salePrice) || salePrice <= 0) {
-      return res.status(400).json({
-        message: "Alış ve satış fiyatı pozitif bir sayı olmalıdır.",
-      });
-    }
-
-    if (!Number.isInteger(categoryId) || categoryId <= 0 || !Number.isInteger(supplierId) || supplierId <= 0) {
-      return res.status(400).json({
-        message: "Kategori ve tedarikçi ID değerleri pozitif tam sayı olmalıdır.",
-      });
-    }
+    if (!Validation.productValidation(req.body, res)) return;
 
     const existingProduct = await prisma.product.findUnique({
       where: {
@@ -211,15 +150,12 @@ router.put("/:id", async (req, res) => {
   }
 });
 
+// ID ile ürün sil
 router.delete("/:id", async (req, res) => {
   try {
-    const id = Number(req.params.id);
+    const id = Validation.idValidation(req.params.id, res, "ürün");
 
-    if (Number.isNaN(id)) {
-      return res.status(400).json({
-        message: "Geçerli bir ürün ID'si girilmelidir.",
-      });
-    }
+    if (id === null) return;
 
     const existingProduct = await prisma.product.findUnique({
       where: {

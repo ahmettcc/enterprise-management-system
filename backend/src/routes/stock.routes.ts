@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { prisma } from "../lib/prisma.js";
+import { Validation } from "../validations/validations.js";
 
 const router = Router();
 
@@ -28,28 +29,7 @@ router.post("/", async (req, res) => {
   try {
     const { quantity, minimumQuantity, productId, warehouseId } = req.body;
 
-    if (
-      quantity === undefined ||
-      minimumQuantity === undefined ||
-      productId === undefined ||
-      warehouseId === undefined
-    ) {
-      return res.status(400).json({
-        message: "Tüm stok bilgileri zorunludur.",
-      });
-    }
-
-    if (!Number.isInteger(quantity) || quantity < 0 || !Number.isInteger(minimumQuantity) || minimumQuantity < 0) {
-      return res.status(400).json({
-        message: "Stok miktarları sıfır veya pozitif tam sayı olmalıdır.",
-      });
-    }
-
-    if (!Number.isInteger(productId) || productId <= 0 || !Number.isInteger(warehouseId) || warehouseId <= 0) {
-      return res.status(400).json({
-        message: "Ürün ve depo ID değerleri pozitif tam sayı olmalıdır.",
-      });
-    }
+    if (!Validation.stockValidation(req.body, res)) return;
 
     const stock = await prisma.stock.create({
       data: {
@@ -81,13 +61,9 @@ router.post("/", async (req, res) => {
 // ID'ye göre tek stok kaydı getir
 router.get("/:id", async (req, res) => {
   try {
-    const id = Number(req.params.id);
+    const id = Validation.idValidation(req.params.id, res, "stok");
 
-    if (Number.isNaN(id)) {
-      return res.status(400).json({
-        message: "Geçerli bir stok ID'si girilmelidir.",
-      });
-    }
+    if (id === null) return;
 
     const stock = await prisma.stock.findUnique({
       where: {
@@ -118,38 +94,13 @@ router.get("/:id", async (req, res) => {
 // ID'ye göre stok kaydı güncelle
 router.put("/:id", async (req, res) => {
   try {
-    const id = Number(req.params.id);
+    const id = Validation.idValidation(req.params.id, res, "stok");
 
-    if (Number.isNaN(id)) {
-      return res.status(400).json({
-        message: "Geçerli bir stok ID'si girilmelidir.",
-      });
-    }
+    if (id === null) return;
 
     const { quantity, minimumQuantity, productId, warehouseId } = req.body;
 
-    if (
-      quantity === undefined ||
-      minimumQuantity === undefined ||
-      productId === undefined ||
-      warehouseId === undefined
-    ) {
-      return res.status(400).json({
-        message: "Tüm stok bilgileri zorunludur.",
-      });
-    }
-
-    if (!Number.isInteger(quantity) || quantity < 0 || !Number.isInteger(minimumQuantity) || minimumQuantity < 0) {
-      return res.status(400).json({
-        message: "Stok miktarları sıfır veya pozitif tam sayı olmalıdır.",
-      });
-    }
-
-    if (!Number.isInteger(productId) || productId <= 0 || !Number.isInteger(warehouseId) || warehouseId <= 0) {
-      return res.status(400).json({
-        message: "Ürün ve depo ID değerleri pozitif tam sayı olmalıdır.",
-      });
-    }
+    if (!Validation.stockValidation(req.body, res)) return;
 
     const existingStock = await prisma.stock.findUnique({
       where: {
@@ -197,13 +148,9 @@ router.put("/:id", async (req, res) => {
 // ID'ye göre stok kaydı sil
 router.delete("/:id", async (req, res) => {
   try {
-    const id = Number(req.params.id);
+    const id = Validation.idValidation(req.params.id, res, "stok");
 
-    if (Number.isNaN(id)) {
-      return res.status(400).json({
-        message: "Geçerli bir stok ID'si girilmelidir.",
-      });
-    }
+    if (id === null) return;
 
     const existingStock = await prisma.stock.findUnique({
       where: {

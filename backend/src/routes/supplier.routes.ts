@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { prisma } from "../lib/prisma.js";
+import { Validation } from "../validations/validations.js";
 
 const router = Router();
 
@@ -21,25 +22,9 @@ router.get("/", async (req, res) => {
 // Yeni tedarikçi ekle
 router.post("/", async (req, res) => {
   try {
-    const { companyName, contactPerson, phone, email, address } = req.body;
+    const {companyName, contactPerson, phone, email, address,} = req.body;
 
-    if (typeof companyName !== "string" || companyName.trim().length === 0) {
-      return res.status(400).json({
-        message: "Şirket adı boş olamaz.",
-      });
-    }
-
-    if (email !== undefined && email !== null && (typeof email !== "string" || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim()))) {
-      return res.status(400).json({
-        message: "Geçerli bir e-posta adresi girilmelidir.",
-      });
-    }
-
-    if (phone !== undefined && phone !== null && typeof phone !== "string") {
-      return res.status(400).json({
-        message: "Telefon bilgisi metin olmalıdır.",
-      });
-    }
+    if (!Validation.supplierValidation(req.body, res)) return;
 
     const supplier = await prisma.supplier.create({
     data: {
@@ -80,13 +65,13 @@ router.post("/", async (req, res) => {
 // ID'ye göre tek tedarikçi getir
 router.get("/:id", async (req, res) => {
   try {
-    const id = Number(req.params.id);
-
-    if (Number.isNaN(id)) {
-      return res.status(400).json({
-        message: "Geçerli bir tedarikçi ID'si girilmelidir.",
-      });
-    }
+    const id = Validation.idValidation(
+      req.params.id,
+      res,
+      "tedarikçi"
+    );
+    
+    if (id === null) return;
 
     const supplier = await prisma.supplier.findUnique({
       where: {
@@ -113,33 +98,17 @@ router.get("/:id", async (req, res) => {
 // ID'ye göre tedarikçi güncelle
 router.put("/:id", async (req, res) => {
   try {
-    const id = Number(req.params.id);
-
-    if (!Number.isInteger(id) || id <= 0) {
-      return res.status(400).json({
-        message: "Geçerli bir tedarikçi ID'si girilmelidir.",
-      });
-    }
+    const id = Validation.idValidation(
+      req.params.id,
+      res,
+      "tedarikçi"
+    );
+    
+    if (id === null) return;
 
     const { companyName, contactPerson, phone, email, address } = req.body;
 
-    if (typeof companyName !== "string" || companyName.trim().length === 0) {
-      return res.status(400).json({
-        message: "Şirket adı boş olamaz.",
-      });
-    }
-
-    if (email !== undefined && email !== null && (typeof email !== "string" || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim()))) {
-      return res.status(400).json({
-        message: "Geçerli bir e-posta adresi girilmelidir.",
-      });
-    }
-
-    if (phone !== undefined && phone !== null && typeof phone !== "string") {
-      return res.status(400).json({
-        message: "Telefon bilgisi metin olmalıdır.",
-      });
-    }
+    if (!Validation.supplierValidation(req.body, res)) return;
 
     const existingSupplier = await prisma.supplier.findUnique({
       where: {
@@ -195,13 +164,13 @@ router.put("/:id", async (req, res) => {
 // ID'ye göre tedarikçi sil
 router.delete("/:id", async (req, res) => {
   try {
-    const id = Number(req.params.id);
-
-    if (Number.isNaN(id)) {
-      return res.status(400).json({
-        message: "Geçerli bir tedarikçi ID'si girilmelidir.",
-      });
-    }
+    const id = Validation.idValidation(
+      req.params.id,
+      res,
+      "tedarikçi"
+    );
+    
+    if (id === null) return;
 
     const existingSupplier = await prisma.supplier.findUnique({
       where: {

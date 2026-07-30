@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { prisma } from "../lib/prisma.js";
+import { Validation } from "../validations/validations.js";
 
 const router = Router();
 
@@ -27,23 +28,7 @@ router.post("/", async (req, res) => {
   try {
     const { action, tableName, recordId, userId } = req.body;
 
-    if (action === undefined || tableName === undefined || recordId === undefined || userId === undefined) {
-      return res.status(400).json({
-        message: "Tüm audit log bilgileri zorunludur.",
-      });
-    }
-    
-    if (typeof action !== "string" || action.trim().length === 0 || typeof tableName !== "string" || tableName.trim().length === 0) {
-      return res.status(400).json({
-        message: "İşlem ve tablo adı boş olamaz.",
-      });
-    }
-    
-    if (!Number.isInteger(recordId) || recordId <= 0 || !Number.isInteger(userId) || userId <= 0) {
-      return res.status(400).json({
-        message: "Kayıt ve kullanıcı ID değerleri pozitif tam sayı olmalıdır.",
-      });
-    }
+    if (!Validation.auditLogValidation(req.body, res)) return;
 
     const auditLog = await prisma.auditLog.create({
       data: {
@@ -67,13 +52,9 @@ router.post("/", async (req, res) => {
 // ID'ye göre tek audit log kaydı getir
 router.get("/:id", async (req, res) => {
   try {
-    const id = Number(req.params.id);
+    const id = Validation.idValidation(req.params.id, res, "audit log");
 
-    if (Number.isNaN(id)) {
-      return res.status(400).json({
-        message: "Geçerli bir audit log ID'si girilmelidir.",
-      });
-    }
+    if (id === null) return;
 
     const auditLog = await prisma.auditLog.findUnique({
       where: {
@@ -103,33 +84,13 @@ router.get("/:id", async (req, res) => {
 // ID'ye göre audit log kaydı güncelle
 router.put("/:id", async (req, res) => {
   try {
-    const id = Number(req.params.id);
+    const id = Validation.idValidation(req.params.id, res, "audit log");
 
-    if (!Number.isInteger(id) || id <= 0) {
-      return res.status(400).json({
-        message: "Geçerli bir audit log ID'si girilmelidir.",
-      });
-    }
+    if (id === null) return;
 
     const { action, tableName, recordId, userId } = req.body;
 
-    if (action === undefined || tableName === undefined || recordId === undefined || userId === undefined) {
-      return res.status(400).json({
-        message: "Tüm audit log bilgileri zorunludur.",
-      });
-    }
-    
-    if (typeof action !== "string" || action.trim().length === 0 || typeof tableName !== "string" || tableName.trim().length === 0) {
-      return res.status(400).json({
-        message: "İşlem ve tablo adı boş olamaz.",
-      });
-    }
-    
-    if (!Number.isInteger(recordId) || recordId <= 0 || !Number.isInteger(userId) || userId <= 0) {
-      return res.status(400).json({
-        message: "Kayıt ve kullanıcı ID değerleri pozitif tam sayı olmalıdır.",
-      });
-    }
+    if (!Validation.auditLogValidation(req.body, res)) return;
 
     const existingAuditLog = await prisma.auditLog.findUnique({
       where: {
@@ -168,13 +129,9 @@ router.put("/:id", async (req, res) => {
 // ID'ye göre audit log kaydı sil
 router.delete("/:id", async (req, res) => {
   try {
-    const id = Number(req.params.id);
+    const id = Validation.idValidation(req.params.id, res, "audit log");
 
-    if (Number.isNaN(id)) {
-      return res.status(400).json({
-        message: "Geçerli bir audit log ID'si girilmelidir.",
-      });
-    }
+    if (id === null) return;
 
     const existingAuditLog = await prisma.auditLog.findUnique({
       where: {

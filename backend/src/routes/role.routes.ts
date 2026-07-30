@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { prisma } from "../lib/prisma.js";
+import { Validation } from "../validations/validations.js";
 
 const router = Router();
 
@@ -23,11 +24,7 @@ router.post("/", async (req, res) => {
   try {
     const { roleName, description } = req.body;
 
-    if (typeof roleName !== "string" || roleName.trim().length === 0) {
-      return res.status(400).json({
-        message: "Rol adı boş olamaz.",
-      });
-    }
+    if (!Validation.roleValidation(req.body, res)) return;
 
     const role = await prisma.role.create({
       data: {
@@ -52,13 +49,9 @@ router.post("/", async (req, res) => {
 // ID'ye göre tek bir rol getir
 router.get("/:id", async (req, res) => {
   try {
-    const id = Number(req.params.id);
+    const id = Validation.idValidation(req.params.id, res, "rol");
 
-    if (Number.isNaN(id)) {
-      return res.status(400).json({
-        message: "Geçerli bir rol ID'si girilmelidir.",
-      });
-    }
+    if (id === null) return;
 
     const role = await prisma.role.findUnique({
       where: {
@@ -85,24 +78,13 @@ router.get("/:id", async (req, res) => {
 // ID'ye göre rol güncelle
 router.put("/:id", async (req, res) => {
   try {
-    const id = Number(req.params.id);
+    const id = Validation.idValidation(req.params.id, res, "rol");
 
-    if (!Number.isInteger(id) || id <= 0) {
-      return res.status(400).json({
-        message: "Geçerli bir rol ID'si girilmelidir.",
-      });
-    }
+    if (id === null) return;
 
     const { roleName, description } = req.body;
 
-    if (
-      typeof roleName !== "string" ||
-      roleName.trim().length === 0
-    ) {
-      return res.status(400).json({
-        message: "Rol adı boş olamaz.",
-      });
-    }
+    if (!Validation.roleValidation(req.body, res)) return;
 
     const existingRole = await prisma.role.findUnique({
       where: {
@@ -142,13 +124,9 @@ router.put("/:id", async (req, res) => {
 // ID'ye göre rol sil
 router.delete("/:id", async (req, res) => {
   try {
-    const id = Number(req.params.id);
+    const id = Validation.idValidation(req.params.id, res, "rol");
 
-    if (Number.isNaN(id)) {
-      return res.status(400).json({
-        message: "Geçerli bir rol ID'si girilmelidir.",
-      });
-    }
+    if (id === null) return;
 
     const existingRole = await prisma.role.findUnique({
       where: {

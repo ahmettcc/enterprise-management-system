@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { prisma } from "../lib/prisma.js";
+import { Validation } from "../validations/validations.js";
 
 const router = Router();
 
@@ -27,29 +28,7 @@ router.post("/", async (req, res) => {
   try {
     const { firstName, lastName, email, passwordHash, roleId } = req.body;
 
-    if (typeof firstName !== "string" || firstName.trim().length === 0 || typeof lastName !== "string" || lastName.trim().length === 0) {
-      return res.status(400).json({
-        message: "Ad ve soyad boş olamaz.",
-      });
-    }
-
-    if (typeof email !== "string" || !email.includes("@") || !email.includes(".")) {
-      return res.status(400).json({
-        message: "Geçerli bir e-posta adresi girilmelidir.",
-      });
-    }
-
-    if (typeof passwordHash !== "string" || passwordHash.trim().length === 0) {
-      return res.status(400).json({
-        message: "Şifre boş olamaz.",
-      });
-    }
-
-    if (!Number.isInteger(roleId) || roleId <= 0) {
-      return res.status(400).json({
-        message: "Rol ID pozitif bir tam sayı olmalıdır.",
-      });
-    }
+    if (!Validation.userValidation(req.body, res)) return;
 
     const user = await prisma.user.create({
       data: {
@@ -74,13 +53,13 @@ router.post("/", async (req, res) => {
 // ID'ye göre tek kullanıcı getir
 router.get("/:id", async (req, res) => {
   try {
-    const id = Number(req.params.id);
+    const id = Validation.idValidation(
+      req.params.id, 
+      res, 
+      "kullanıcı"
+    );
 
-    if (Number.isNaN(id)) {
-      return res.status(400).json({
-        message: "Geçerli bir kullanıcı ID'si girilmelidir.",
-      });
-    }
+    if (id === null) return;
 
     const user = await prisma.user.findUnique({
       where: {
@@ -110,21 +89,17 @@ router.get("/:id", async (req, res) => {
 // ID'ye göre kullanıcı güncelle
 router.put("/:id", async (req, res) => {
   try {
-    const id = Number(req.params.id);
+    const id = Validation.idValidation(
+      req.params.id,
+      res,
+      "kullanıcı"
+    );
 
-    if (Number.isNaN(id)) {
-      return res.status(400).json({
-        message: "Geçerli bir kullanıcı ID'si girilmelidir.",
-      });
-    }
+    if (id === null) return;
 
     const { firstName, lastName, email, passwordHash, roleId } = req.body;
 
-    if (!firstName || !lastName || !email || !passwordHash || roleId === undefined) {
-      return res.status(400).json({
-        message: "Ad, soyad, e-posta, şifre ve rol ID zorunludur.",
-      });
-    }
+    if (!Validation.userValidation(req.body, res)) return;
 
     const existingUser = await prisma.user.findUnique({
       where: {
@@ -164,13 +139,13 @@ router.put("/:id", async (req, res) => {
 // ID'ye göre kullanıcı sil
 router.delete("/:id", async (req, res) => {
   try {
-    const id = Number(req.params.id);
+    const id = Validation.idValidation(
+      req.params.id,
+      res,
+      "kullanıcı"
+    );
 
-    if (Number.isNaN(id)) {
-      return res.status(400).json({
-        message: "Geçerli bir kullanıcı ID'si girilmelidir.",
-      });
-    }
+    if (id === null) return;
 
     const existingUser = await prisma.user.findUnique({
       where: {

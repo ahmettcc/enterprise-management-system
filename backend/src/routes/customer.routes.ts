@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { prisma } from "../lib/prisma.js";
+import { Validation } from "../validations/validations.js";
 
 const router = Router();
 
@@ -23,23 +24,7 @@ router.post("/", async (req, res) => {
   try {
     const { firstName, lastName, phone, email, address } = req.body;
 
-    if (typeof firstName !== "string" || firstName.trim().length === 0 || typeof lastName !== "string" || lastName.trim().length === 0) {
-      return res.status(400).json({
-        message: "Müşteri adı ve soyadı boş olamaz.",
-      });
-    }
-
-    if (email !== undefined && email !== null && (typeof email !== "string" || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim()))) {
-      return res.status(400).json({
-        message: "Geçerli bir e-posta adresi girilmelidir.",
-      });
-    }
-
-    if (phone !== undefined && phone !== null && typeof phone !== "string") {
-      return res.status(400).json({
-        message: "Telefon bilgisi metin olmalıdır.",
-      });
-    }
+    if (!Validation.customerValidation(req.body, res)) return;
 
     const customer = await prisma.customer.create({
       data: {
@@ -70,13 +55,9 @@ router.post("/", async (req, res) => {
 // ID'ye göre tek bir müşteri getir
 router.get("/:id", async (req, res) => {
   try {
-    const id = Number(req.params.id);
+    const id = Validation.idValidation(req.params.id, res, "müşteri");
 
-    if (Number.isNaN(id)) {
-      return res.status(400).json({
-        message: "Geçerli bir müşteri ID'si girilmelidir.",
-      });
-    }
+    if (id === null) return;
 
     const customer = await prisma.customer.findUnique({
       where: {
@@ -103,33 +84,13 @@ router.get("/:id", async (req, res) => {
 // ID'ye göre müşteri güncelle
 router.put("/:id", async (req, res) => {
   try {
-    const id = Number(req.params.id);
+    const id = Validation.idValidation(req.params.id, res, "müşteri");
 
-    if (!Number.isInteger(id) || id <= 0) {
-      return res.status(400).json({
-        message: "Geçerli bir müşteri ID'si girilmelidir.",
-      });
-    }
+    if (id === null) return;
 
     const { firstName, lastName, phone, email, address } = req.body;
 
-    if (typeof firstName !== "string" || firstName.trim().length === 0 || typeof lastName !== "string" || lastName.trim().length === 0) {
-      return res.status(400).json({
-        message: "Müşteri adı ve soyadı boş olamaz.",
-      });
-    }
-
-    if (email !== undefined && email !== null && (typeof email !== "string" || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim()))) {
-      return res.status(400).json({
-        message: "Geçerli bir e-posta adresi girilmelidir.",
-      });
-    }
-
-    if (phone !== undefined && phone !== null && typeof phone !== "string") {
-      return res.status(400).json({
-        message: "Telefon bilgisi metin olmalıdır.",
-      });
-    }
+    if (!Validation.customerValidation(req.body, res)) return;
 
     const updatedCustomer = await prisma.customer.update({
       where: {
@@ -163,13 +124,9 @@ router.put("/:id", async (req, res) => {
 // ID'ye göre müşteri sil
 router.delete("/:id", async (req, res) => {
   try {
-    const id = Number(req.params.id);
+    const id = Validation.idValidation(req.params.id, res, "müşteri");
 
-    if (Number.isNaN(id)) {
-      return res.status(400).json({
-        message: "Geçerli bir müşteri ID'si girilmelidir.",
-      });
-    }
+    if (id === null) return;
 
     const existingCustomer = await prisma.customer.findUnique({
       where: {

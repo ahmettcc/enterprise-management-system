@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { prisma } from "../lib/prisma.js";
+import { Validation } from "../validations/validations.js";
 
 const router = Router();
 
@@ -36,36 +37,7 @@ router.post("/", async (req, res) => {
       warehouseId,
     } = req.body;
 
-    if (
-      quantity === undefined ||
-      unitPrice === undefined ||
-      totalPrice === undefined ||
-      saleId === undefined ||
-      productId === undefined ||
-      warehouseId === undefined
-    ) {
-      return res.status(400).json({
-        message: "Tüm satış detayı bilgileri zorunludur.",
-      });
-    }
-
-    if (!Number.isInteger(quantity) || quantity <= 0) {
-        return res.status(400).json({
-        message: "Satış miktarı pozitif bir tam sayı olmalıdır.",
-      });
-    }
-
-    if (!Number.isFinite(unitPrice) || unitPrice <= 0 || !Number.isFinite(totalPrice) || totalPrice <= 0) {
-      return res.status(400).json({
-        message: "Birim fiyat ve toplam fiyat pozitif bir sayı olmalıdır.",
-      });
-    }
-
-    if (!Number.isInteger(saleId) || saleId <= 0 || !Number.isInteger(productId) || productId <= 0 || !Number.isInteger(warehouseId) || warehouseId <= 0) {
-      return res.status(400).json({
-        message: "Satış, ürün ve depo ID değerleri pozitif tam sayı olmalıdır.",
-      });
-    }
+    if (!Validation.saleDetailValidation(req.body, res)) return;
 
     const stock = await prisma.stock.findUnique({
       where: {
@@ -125,13 +97,9 @@ router.post("/", async (req, res) => {
 // ID'ye göre tek satış detayı getir
 router.get("/:id", async (req, res) => {
   try {
-    const id = Number(req.params.id);
+    const id = Validation.idValidation(req.params.id, res, "satış detayı");
 
-    if (Number.isNaN(id)) {
-      return res.status(400).json({
-        message: "Geçerli bir satış detayı ID'si girilmelidir.",
-      });
-    }
+    if (id === null) return;
 
     const saleDetail = await prisma.saleDetail.findUnique({
       where: {
@@ -163,13 +131,9 @@ router.get("/:id", async (req, res) => {
 // ID'ye göre satış detayı güncelle
 router.put("/:id", async (req, res) => {
   try {
-    const id = Number(req.params.id);
+    const id = Validation.idValidation(req.params.id, res, "satış detayı");
 
-    if (Number.isNaN(id)) {
-      return res.status(400).json({
-        message: "Geçerli bir satış detayı ID'si girilmelidir.",
-      });
-    }
+    if (id === null) return;
 
     const {
       quantity,
@@ -180,36 +144,7 @@ router.put("/:id", async (req, res) => {
       warehouseId,
     } = req.body;
 
-    if (
-      quantity === undefined ||
-      unitPrice === undefined ||
-      totalPrice === undefined ||
-      saleId === undefined ||
-      productId === undefined ||
-      warehouseId === undefined
-    ) {
-      return res.status(400).json({
-        message: "Tüm satış detayı bilgileri zorunludur.",
-      });
-    }
-
-    if (!Number.isInteger(quantity) || quantity <= 0) {
-        return res.status(400).json({
-        message: "Satış miktarı pozitif bir tam sayı olmalıdır.",
-      });
-    }
-
-    if (!Number.isFinite(unitPrice) || unitPrice <= 0 || !Number.isFinite(totalPrice) || totalPrice <= 0) {
-      return res.status(400).json({
-        message: "Birim fiyat ve toplam fiyat pozitif bir sayı olmalıdır.",
-      });
-    }
-
-    if (!Number.isInteger(saleId) || saleId <= 0 || !Number.isInteger(productId) || productId <= 0 || !Number.isInteger(warehouseId) || warehouseId <= 0) {
-      return res.status(400).json({
-        message: "Satış, ürün ve depo ID değerleri pozitif tam sayı olmalıdır.",
-      });
-    }
+    if (!Validation.saleDetailValidation(req.body, res)) return;
 
     const existingsaleDetail = await prisma.saleDetail.findUnique({
       where: {
@@ -291,13 +226,9 @@ router.put("/:id", async (req, res) => {
 // ID'ye göre satış detayı sil
 router.delete("/:id", async (req, res) => {
   try {
-    const id = Number(req.params.id);
+    const id = Validation.idValidation(req.params.id, res, "satış detayı");
 
-    if (Number.isNaN(id)) {
-      return res.status(400).json({
-        message: "Geçerli bir satış detayı ID'si girilmelidir.",
-      });
-    }
+    if (id === null) return;
 
     const existingsaleDetail = await prisma.saleDetail.findUnique({
       where: {
