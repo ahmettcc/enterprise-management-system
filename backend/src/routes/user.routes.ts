@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { prisma } from "../lib/prisma.js";
 import { Validation } from "../validations/validations.js";
+import bcrypt from "bcryptjs";
 
 const router = Router();
 
@@ -26,15 +27,17 @@ router.get("/", async (req, res) => {
 // Yeni kullanıcı ekle
 router.post("/", async (req, res) => {
   try {
-    const { firstName, lastName, email, passwordHash, roleId } = req.body;
+    const { firstName, lastName, email, password, roleId } = req.body;
 
     if (!Validation.userValidation(req.body, res)) return;
+
+    const passwordHash = await bcrypt.hash(password, 10);
 
     const user = await prisma.user.create({
       data: {
         firstName,
         lastName,
-        email,
+        email: email.trim().toLowerCase(),
         passwordHash,
         roleId,
       },
@@ -97,7 +100,7 @@ router.put("/:id", async (req, res) => {
 
     if (id === null) return;
 
-    const { firstName, lastName, email, passwordHash, roleId } = req.body;
+    const { firstName, lastName, email, password, roleId } = req.body;
 
     if (!Validation.userValidation(req.body, res)) return;
 
@@ -112,6 +115,8 @@ router.put("/:id", async (req, res) => {
         message: "Güncellenecek kullanıcı bulunamadı.",
       });
     }
+    
+    const passwordHash = await bcrypt.hash(password, 10);
 
     const updatedUser = await prisma.user.update({
       where: {
@@ -120,7 +125,7 @@ router.put("/:id", async (req, res) => {
       data: {
         firstName,
         lastName,
-        email,
+        email: email.trim().toLowerCase(),
         passwordHash,
         roleId,
       },

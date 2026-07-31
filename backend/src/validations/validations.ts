@@ -23,7 +23,7 @@ export class Validation {
             firstName,
             lastName,
             email,
-            passwordHash,
+            password,
             roleId,
         } = data;
       
@@ -43,9 +43,9 @@ export class Validation {
             return false;
         }
       
-        if (typeof passwordHash !== "string" || passwordHash.trim().length === 0) {
+        if (typeof password !== "string" || password.length < 8) {
             res.status(400).json({
-              message: "Şifre boş olamaz.",
+              message: "Şifre en az 8 karakter olmalıdır.",
             });
       
             return false;
@@ -360,5 +360,28 @@ export class Validation {
         }
 
         return id;
+    }
+
+    // Login Validation
+    static loginValidation(data: any, res: Response): boolean {
+        const { email, password } = data;
+
+        if (typeof email !== "string" || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+            res.status(400).json({
+                message: "Geçerli bir e-posta adresi girilmelidir.",
+            });
+
+            return false;
+        }
+
+        if (typeof password !== "string" || password.length < 8) {
+            res.status(400).json({
+                message: "Şifre en az 8 karakter olmalıdır.",
+            });
+
+            return false;
+        }
+
+        return true;
     }
 }

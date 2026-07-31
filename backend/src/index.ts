@@ -11,6 +11,7 @@ import stockRoutes from "./routes/stock.routes.js";
 import saleRoutes from "./routes/sale.routes.js";
 import saleDetailRoutes from "./routes/sale-detail.routes.js";
 import auditLogRoutes from "./routes/audit-log.routes.js";
+import authRoutes from "./routes/auth.routes.js";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -27,6 +28,7 @@ app.use("/api/stocks", stockRoutes);
 app.use("/api/sales", saleRoutes);
 app.use("/api/sale-details", saleDetailRoutes);
 app.use("/api/audit-logs", auditLogRoutes);
+app.use("/api/auth", authRoutes);
 
 app.get("/", (req, res) => {
   res.send("Backend çalışıyor.");

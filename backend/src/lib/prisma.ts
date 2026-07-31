@@ -8,4 +8,9 @@ const adapter = new PrismaPg({
 
 export const prisma = new PrismaClient({
   adapter,
+  omit: {
+    user: {
+      passwordHash: true,
+    },
+  },
 });
