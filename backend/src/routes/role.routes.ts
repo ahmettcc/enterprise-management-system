@@ -1,10 +1,11 @@
 import { Router } from "express";
 import { prisma } from "../lib/prisma.js";
 import { Validation } from "../validations/validations.js";
+import { RoleModel } from "../models/models.js";
 
 const router = Router();
 
-// Bütün rolleri getir
+// GET /roles
 router.get("/", async (req, res) => {
   try {
     const roles = await prisma.role.findMany();
@@ -19,21 +20,15 @@ router.get("/", async (req, res) => {
   }
 });
 
-// Yeni rol ekle
+// POST /roles
 router.post("/", async (req, res) => {
   try {
-    const { roleName, description } = req.body;
+    const roleModel = new RoleModel(req.body);
 
-    if (!Validation.roleValidation(req.body, res)) return;
+    if (!Validation.roleValidation(roleModel, res)) return;
 
     const role = await prisma.role.create({
-      data: {
-        roleName: roleName.trim(),
-        description:
-          typeof description === "string" && description.trim() !== ""
-            ? description.trim()
-            : null,
-      },
+      data: roleModel,
     });
 
     res.status(201).json(role);
@@ -46,7 +41,7 @@ router.post("/", async (req, res) => {
   }
 });
 
-// ID'ye göre tek bir rol getir
+// GET /roles/:id
 router.get("/:id", async (req, res) => {
   try {
     const id = Validation.idValidation(req.params.id, res, "rol");
@@ -75,16 +70,16 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-// ID'ye göre rol güncelle
+// PUT /roles/:id
 router.put("/:id", async (req, res) => {
   try {
     const id = Validation.idValidation(req.params.id, res, "rol");
 
     if (id === null) return;
 
-    const { roleName, description } = req.body;
+    const roleModel = new RoleModel(req.body);
 
-    if (!Validation.roleValidation(req.body, res)) return;
+    if (!Validation.roleValidation(roleModel, res)) return;
 
     const existingRole = await prisma.role.findUnique({
       where: {
@@ -102,13 +97,7 @@ router.put("/:id", async (req, res) => {
       where: {
         id,
       },
-      data: {
-        roleName: roleName.trim(),
-        description:
-          typeof description === "string" && description.trim() !== ""
-            ? description.trim()
-            : null,
-      },
+      data: roleModel,
     });
 
     res.status(200).json(updatedRole);
@@ -121,7 +110,7 @@ router.put("/:id", async (req, res) => {
   }
 });
 
-// ID'ye göre rol sil
+// DELETE /roles/:id
 router.delete("/:id", async (req, res) => {
   try {
     const id = Validation.idValidation(req.params.id, res, "rol");

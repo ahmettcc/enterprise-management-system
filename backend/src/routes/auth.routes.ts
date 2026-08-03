@@ -2,18 +2,22 @@ import { Router } from "express";
 import bcrypt from "bcryptjs";
 import { prisma } from "../lib/prisma.js";
 import { Validation } from "../validations/validations.js";
+import { LoginModel } from "../models/models.js";
 
 const router = Router();
 
+// POST /login
 router.post("/login", async (req, res) => {
     try {
-        const { email, password } = req.body;
+        const loginModel = new LoginModel(req.body);
 
-        if (!Validation.loginValidation(req.body, res)) return;
+        if (!Validation.loginValidation(loginModel, res)) return;
+
+        const { email, password } = loginModel;
 
         const user = await prisma.user.findUnique({
             where: {
-                email: email.trim().toLowerCase(),
+                email,
             },
             select: {
                 id: true,

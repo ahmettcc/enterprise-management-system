@@ -1,10 +1,11 @@
 import { Router } from "express";
 import { prisma } from "../lib/prisma.js";
 import { Validation } from "../validations/validations.js";
+import { StockModel } from "../models/models.js";
 
 const router = Router();
 
-// Bütün stok kayıtlarını getir
+// GET /stocks
 router.get("/", async (req, res) => {
   try {
     const stocks = await prisma.stock.findMany({
@@ -24,20 +25,15 @@ router.get("/", async (req, res) => {
   }
 });
 
-// Yeni stok kaydı ekle
+// POST /stocks
 router.post("/", async (req, res) => {
   try {
-    const { quantity, minimumQuantity, productId, warehouseId } = req.body;
+    const stockModel = new StockModel(req.body);
 
-    if (!Validation.stockValidation(req.body, res)) return;
+    if (!Validation.stockValidation(stockModel, res)) return;
 
     const stock = await prisma.stock.create({
-      data: {
-        quantity,
-        minimumQuantity,
-        productId,
-        warehouseId,
-      },
+      data: stockModel,
     });
 
     res.status(201).json(stock);
@@ -58,7 +54,7 @@ router.post("/", async (req, res) => {
   }
 });
 
-// ID'ye göre tek stok kaydı getir
+// GET /stocks/:id
 router.get("/:id", async (req, res) => {
   try {
     const id = Validation.idValidation(req.params.id, res, "stok");
@@ -91,16 +87,16 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-// ID'ye göre stok kaydı güncelle
+// PUT /stocks/:id
 router.put("/:id", async (req, res) => {
   try {
     const id = Validation.idValidation(req.params.id, res, "stok");
 
     if (id === null) return;
 
-    const { quantity, minimumQuantity, productId, warehouseId } = req.body;
+    const stockModel = new StockModel(req.body);
 
-    if (!Validation.stockValidation(req.body, res)) return;
+    if (!Validation.stockValidation(stockModel, res)) return;
 
     const existingStock = await prisma.stock.findUnique({
       where: {
@@ -118,12 +114,7 @@ router.put("/:id", async (req, res) => {
       where: {
         id,
       },
-      data: {
-        quantity,
-        minimumQuantity,
-        productId,
-        warehouseId,
-      },
+      data: stockModel,
     });
 
     res.status(200).json(updatedStock);
@@ -145,7 +136,7 @@ router.put("/:id", async (req, res) => {
   }
 });
 
-// ID'ye göre stok kaydı sil
+// DELETE /stocks/:id
 router.delete("/:id", async (req, res) => {
   try {
     const id = Validation.idValidation(req.params.id, res, "stok");

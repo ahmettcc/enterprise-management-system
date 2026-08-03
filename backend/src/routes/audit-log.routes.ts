@@ -1,10 +1,11 @@
 import { Router } from "express";
 import { prisma } from "../lib/prisma.js";
 import { Validation } from "../validations/validations.js";
+import { AuditLogModel } from "../models/models.js";
 
 const router = Router();
 
-// Bütün audit log kayıtlarını getir
+// GET /audit-logs
 router.get("/", async (req, res) => {
   try {
     const auditLogs = await prisma.auditLog.findMany({
@@ -23,20 +24,15 @@ router.get("/", async (req, res) => {
   }
 });
 
-// Yeni audit log kaydı ekle
+// POST /audit-logs
 router.post("/", async (req, res) => {
   try {
-    const { action, tableName, recordId, userId } = req.body;
+    const auditLogModel = new AuditLogModel(req.body);
 
-    if (!Validation.auditLogValidation(req.body, res)) return;
+    if (!Validation.auditLogValidation(auditLogModel, res)) return;
 
     const auditLog = await prisma.auditLog.create({
-      data: {
-        action: action.trim(),
-        tableName: tableName.trim(),
-        recordId,
-        userId,
-      },
+      data: auditLogModel,
     });
 
     res.status(201).json(auditLog);
@@ -49,7 +45,7 @@ router.post("/", async (req, res) => {
   }
 });
 
-// ID'ye göre tek audit log kaydı getir
+// GET /audit-logs/:id
 router.get("/:id", async (req, res) => {
   try {
     const id = Validation.idValidation(req.params.id, res, "audit log");
@@ -81,16 +77,16 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-// ID'ye göre audit log kaydı güncelle
+// PUT /audit-logs/:id
 router.put("/:id", async (req, res) => {
   try {
     const id = Validation.idValidation(req.params.id, res, "audit log");
 
     if (id === null) return;
 
-    const { action, tableName, recordId, userId } = req.body;
+    const auditLogModel = new AuditLogModel(req.body);
 
-    if (!Validation.auditLogValidation(req.body, res)) return;
+    if (!Validation.auditLogValidation(auditLogModel, res)) return;
 
     const existingAuditLog = await prisma.auditLog.findUnique({
       where: {
@@ -108,12 +104,7 @@ router.put("/:id", async (req, res) => {
       where: {
         id,
       },
-      data: {
-        action: action.trim(),
-        tableName: tableName.trim(),
-        recordId,
-        userId,
-      },
+      data: auditLogModel,
     });
 
     res.status(200).json(updatedAuditLog);
@@ -126,7 +117,7 @@ router.put("/:id", async (req, res) => {
   }
 });
 
-// ID'ye göre audit log kaydı sil
+// DELETE /audit-logs/:id
 router.delete("/:id", async (req, res) => {
   try {
     const id = Validation.idValidation(req.params.id, res, "audit log");

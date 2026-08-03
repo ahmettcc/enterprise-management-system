@@ -1,10 +1,11 @@
 import { Router } from "express";
 import { prisma } from "../lib/prisma.js";
 import { Validation } from "../validations/validations.js";
+import { ProductModel } from "../models/models.js";
 
 const router = Router();
 
-// Bütün ürünleri getir
+// GET /products
 router.get("/", async (req, res) => {
   try {
     const products = await prisma.product.findMany({
@@ -24,31 +25,15 @@ router.get("/", async (req, res) => {
   }
 });
 
-// Yeni ürün ekle
+// POST /products
 router.post("/", async (req, res) => {
   try {
-    const {
-      barcode,
-      productName,
-      description,
-      purchasePrice,
-      salePrice,
-      categoryId,
-      supplierId,
-    } = req.body;
+    const productModel = new ProductModel(req.body);
 
-    if (!Validation.productValidation(req.body, res)) return;
+    if (!Validation.productValidation(productModel, res)) return;
 
     const product = await prisma.product.create({
-      data: {
-        barcode,
-        productName,
-        description: description ?? null,
-        purchasePrice,
-        salePrice,
-        categoryId,
-        supplierId,
-      },
+      data: productModel,
     });
 
     res.status(201).json(product);
@@ -61,7 +46,7 @@ router.post("/", async (req, res) => {
   }
 });
 
-// ID ile ürün getir
+// GET /products/:id
 router.get("/:id", async (req, res) => {
   try {
     const id = Validation.idValidation(req.params.id, res, "ürün");
@@ -94,24 +79,16 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-// ID ile ürün güncelle
+// PUT /products/:id
 router.put("/:id", async (req, res) => {
   try {
     const id = Validation.idValidation(req.params.id, res, "ürün");
 
     if (id === null) return;
 
-    const {
-      barcode,
-      productName,
-      description,
-      purchasePrice,
-      salePrice,
-      categoryId,
-      supplierId,
-    } = req.body;
+    const productModel = new ProductModel(req.body);
 
-    if (!Validation.productValidation(req.body, res)) return;
+    if (!Validation.productValidation(productModel, res)) return;
 
     const existingProduct = await prisma.product.findUnique({
       where: {
@@ -129,15 +106,7 @@ router.put("/:id", async (req, res) => {
       where: {
         id,
       },
-      data: {
-        barcode,
-        productName,
-        description: description ?? null,
-        purchasePrice,
-        salePrice,
-        categoryId,
-        supplierId,
-      },
+      data: productModel,
     });
 
     res.status(200).json(updatedProduct);
@@ -150,7 +119,7 @@ router.put("/:id", async (req, res) => {
   }
 });
 
-// ID ile ürün sil
+// DELETE /products/:id
 router.delete("/:id", async (req, res) => {
   try {
     const id = Validation.idValidation(req.params.id, res, "ürün");

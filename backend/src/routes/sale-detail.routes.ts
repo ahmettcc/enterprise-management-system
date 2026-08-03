@@ -1,10 +1,11 @@
 import { Router } from "express";
 import { prisma } from "../lib/prisma.js";
 import { Validation } from "../validations/validations.js";
+import { SaleDetailModel } from "../models/models.js";
 
 const router = Router();
 
-// Bütün satış kalemlerini getir
+// GET /sales-details
 router.get("/", async (req, res) => {
   try {
     const saleDetails = await prisma.saleDetail.findMany({
@@ -20,24 +21,19 @@ router.get("/", async (req, res) => {
     console.error(error);
 
     res.status(500).json({
-      message: "Satış kalemleri getirilirken bir hata oluştu.",
+      message: "Satış detayları getirilirken bir hata oluştu.",
     });
   }
 });
 
-// Yeni satış detayı ekle
+// POST /sales-details
 router.post("/", async (req, res) => {
   try {
-    const {
-      quantity,
-      unitPrice,
-      totalPrice,
-      saleId,
-      productId,
-      warehouseId,
-    } = req.body;
+    const saleDetailModel = new SaleDetailModel(req.body);
 
-    if (!Validation.saleDetailValidation(req.body, res)) return;
+    if (!Validation.saleDetailValidation(saleDetailModel, res)) return;
+
+    const { quantity, productId, warehouseId } = saleDetailModel;
 
     const stock = await prisma.stock.findUnique({
       where: {
@@ -62,14 +58,7 @@ router.post("/", async (req, res) => {
 
     const saleDetail = await prisma.$transaction(async (tx) => {
       const createdsaleDetail = await tx.saleDetail.create({
-        data: {
-          quantity,
-          unitPrice,
-          totalPrice,
-          saleId,
-          productId,
-          warehouseId,
-        },
+        data: saleDetailModel,
       });
     
       await tx.stock.update({
@@ -94,7 +83,7 @@ router.post("/", async (req, res) => {
   }
 });
 
-// ID'ye göre tek satış detayı getir
+// GET /sales-details/:id
 router.get("/:id", async (req, res) => {
   try {
     const id = Validation.idValidation(req.params.id, res, "satış detayı");
@@ -128,37 +117,32 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-// ID'ye göre satış detayı güncelle
+// PUT /sales-details/:id
 router.put("/:id", async (req, res) => {
   try {
     const id = Validation.idValidation(req.params.id, res, "satış detayı");
 
     if (id === null) return;
 
-    const {
-      quantity,
-      unitPrice,
-      totalPrice,
-      saleId,
-      productId,
-      warehouseId,
-    } = req.body;
+    const saleDetailModel = new SaleDetailModel(req.body);
 
-    if (!Validation.saleDetailValidation(req.body, res)) return;
+    if (!Validation.saleDetailValidation(saleDetailModel, res)) return;
 
-    const existingsaleDetail = await prisma.saleDetail.findUnique({
+    const { quantity, productId, warehouseId } = saleDetailModel;
+
+    const existingSaleDetail = await prisma.saleDetail.findUnique({
       where: {
         id,
       },
     });
 
-    if (!existingsaleDetail) {
+    if (!existingSaleDetail) {
       return res.status(404).json({
         message: "Güncellenecek satış detayı bulunamadı.",
       });
     }
 
-    if (existingsaleDetail.productId !== productId || existingsaleDetail.warehouseId !== warehouseId){
+    if (existingSaleDetail.productId !== productId || existingSaleDetail.warehouseId !== warehouseId){
       return res.status(400).json({
         message: "PUT işleminde ürün ve depo değiştirilemez.",
       });
@@ -179,15 +163,15 @@ router.put("/:id", async (req, res) => {
       });
     }
     
-    const quantityDifference = quantity - existingsaleDetail.quantity;
+    const quantityDifference = quantity - existingSaleDetail.quantity;
     
     if (quantityDifference > stock.quantity) {
       return res.status(400).json({
         message: "Seçilen depoda yeterli stok bulunmamaktadır.",
       });
     }
-    const updatedsaleDetail = await prisma.$transaction(async (tx) => {
-      await prisma.stock.update({
+    const updatedSaleDetail = await prisma.$transaction(async (tx) => {
+      await tx.stock.update({
         where: {
           id: stock.id,
         },
@@ -196,24 +180,17 @@ router.put("/:id", async (req, res) => {
         },
       });
 
-      const updatedsaleDetail = await prisma.saleDetail.update({
+      const updatedSaleDetail = await tx.saleDetail.update({
         where: {
           id,
         },
-        data: {
-          quantity,
-          unitPrice,
-          totalPrice,
-          saleId,
-          productId,
-          warehouseId,
-        },
+        data: saleDetailModel,
       });
       
-      return updatedsaleDetail;
+      return updatedSaleDetail;
     });
 
-    res.status(200).json(updatedsaleDetail);
+    res.status(200).json(updatedSaleDetail);
   } catch (error) {
     console.error(error);
 
@@ -223,20 +200,20 @@ router.put("/:id", async (req, res) => {
   }
 });
 
-// ID'ye göre satış detayı sil
+// DELETE /sales-details/:id
 router.delete("/:id", async (req, res) => {
   try {
     const id = Validation.idValidation(req.params.id, res, "satış detayı");
 
     if (id === null) return;
 
-    const existingsaleDetail = await prisma.saleDetail.findUnique({
+    const existingSaleDetail = await prisma.saleDetail.findUnique({
       where: {
         id,
       },
     });
 
-    if (!existingsaleDetail) {
+    if (!existingSaleDetail) {
       return res.status(404).json({
         message: "Silinecek satış detayı bulunamadı.",
       });
@@ -245,8 +222,8 @@ router.delete("/:id", async (req, res) => {
     const stock = await prisma.stock.findUnique({
       where: {
         productId_warehouseId: {
-          productId: existingsaleDetail.productId,
-          warehouseId: existingsaleDetail.warehouseId,
+          productId: existingSaleDetail.productId,
+          warehouseId: existingSaleDetail.warehouseId,
         },
       },
     });
@@ -257,16 +234,16 @@ router.delete("/:id", async (req, res) => {
       });
     }
     const deletedsaleDetail = await prisma.$transaction(async (tx) => {
-      await prisma.stock.update({
+      await tx.stock.update({
         where: {
           id: stock.id,
         },
         data: {
-          quantity: stock.quantity + existingsaleDetail.quantity,
+          quantity: stock.quantity + existingSaleDetail.quantity,
         },
       });
 
-      const deletedsaleDetail = await prisma.saleDetail.delete({
+      const deletedsaleDetail = await tx.saleDetail.delete({
         where: {
           id,
         },

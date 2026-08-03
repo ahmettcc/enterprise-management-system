@@ -1,10 +1,11 @@
 import { Router } from "express";
 import { prisma } from "../lib/prisma.js";
 import { Validation } from "../validations/validations.js";
+import { CustomerModel } from "../models/models.js";
 
 const router = Router();
 
-// Bütün müşterileri getir
+// GET /customers
 router.get("/", async (req, res) => {
   try {
     const customers = await prisma.customer.findMany();
@@ -19,27 +20,15 @@ router.get("/", async (req, res) => {
   }
 });
 
-// Yeni müşteri ekle
+// POST /customers
 router.post("/", async (req, res) => {
   try {
-    const { firstName, lastName, phone, email, address } = req.body;
+    const customerModel = new CustomerModel(req.body);
 
-    if (!Validation.customerValidation(req.body, res)) return;
+    if (!Validation.customerValidation(customerModel, res)) return;
 
     const customer = await prisma.customer.create({
-      data: {
-        firstName: firstName.trim(),
-        lastName: lastName.trim(),
-        phone: typeof phone === "string" && phone.trim() !== ""
-          ? phone.trim()
-          : null,
-        email: typeof email === "string" && email.trim() !== ""
-          ? email.trim()
-          : null,
-        address: typeof address === "string" && address.trim() !== ""
-          ? address.trim()
-          : null,
-      },
+      data: customerModel,
     });
 
     res.status(201).json(customer);
@@ -52,7 +41,7 @@ router.post("/", async (req, res) => {
   }
 });
 
-// ID'ye göre tek bir müşteri getir
+// GET /customers/:id
 router.get("/:id", async (req, res) => {
   try {
     const id = Validation.idValidation(req.params.id, res, "müşteri");
@@ -81,34 +70,22 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-// ID'ye göre müşteri güncelle
+// PUT /customers/:id
 router.put("/:id", async (req, res) => {
   try {
     const id = Validation.idValidation(req.params.id, res, "müşteri");
 
     if (id === null) return;
 
-    const { firstName, lastName, phone, email, address } = req.body;
+    const customerModel = new CustomerModel(req.body);
 
-    if (!Validation.customerValidation(req.body, res)) return;
+    if (!Validation.customerValidation(customerModel, res)) return;
 
     const updatedCustomer = await prisma.customer.update({
       where: {
         id,
       },
-      data: {
-        firstName: firstName.trim(),
-        lastName: lastName.trim(),
-        phone: typeof phone === "string" && phone.trim() !== ""
-          ? phone.trim()
-          : null,
-        email: typeof email === "string" && email.trim() !== ""
-          ? email.trim()
-          : null,
-        address: typeof address === "string" && address.trim() !== ""
-          ? address.trim()
-          : null,
-      },
+      data: customerModel,
     });
 
     res.status(200).json(updatedCustomer);
@@ -121,7 +98,7 @@ router.put("/:id", async (req, res) => {
   }
 });
 
-// ID'ye göre müşteri sil
+// DELETE /customers/:id
 router.delete("/:id", async (req, res) => {
   try {
     const id = Validation.idValidation(req.params.id, res, "müşteri");

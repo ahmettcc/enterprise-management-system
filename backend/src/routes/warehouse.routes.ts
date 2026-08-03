@@ -1,10 +1,11 @@
 import { Router } from "express";
 import { prisma } from "../lib/prisma.js";
 import { Validation } from "../validations/validations.js";
+import { WarehouseModel } from "../models/models.js";
 
 const router = Router();
 
-// Bütün depoları getir
+// GET /warehouses
 router.get("/", async (req, res) => {
   try {
     const warehouses = await prisma.warehouse.findMany();
@@ -19,21 +20,15 @@ router.get("/", async (req, res) => {
   }
 });
 
-// Yeni depo ekle
+// POST /warehouses
 router.post("/", async (req, res) => {
   try {
-    const { warehouseName, address } = req.body;
+    const warehouseModel = new WarehouseModel(req.body);
 
-    if (!Validation.warehouseValidation(req.body, res)) return;
+    if (!Validation.warehouseValidation(warehouseModel, res)) return;
 
     const warehouse = await prisma.warehouse.create({
-      data: {
-        warehouseName: warehouseName.trim(),
-        address:
-          typeof address === "string" && address.trim() !== ""
-            ? address.trim()
-            : null,
-      },
+      data: warehouseModel,
     });
 
     res.status(201).json(warehouse);
@@ -46,7 +41,7 @@ router.post("/", async (req, res) => {
   }
 });
 
-// ID'ye göre tek depo getir
+// GET /warehouses/:id
 router.get("/:id", async (req, res) => {
   try {
     const id = Validation.idValidation(req.params.id, res, "depo");
@@ -75,16 +70,16 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-// ID'ye göre depo güncelle
+// PUT /warehouses/:id
 router.put("/:id", async (req, res) => {
   try {
     const id = Validation.idValidation(req.params.id, res, "depo");
 
     if (id === null) return;
 
-    const { warehouseName, address } = req.body;
+    const warehouseModel = new WarehouseModel(req.body);
 
-    if (!Validation.warehouseValidation(req.body, res)) return;
+    if (!Validation.warehouseValidation(warehouseModel, res)) return;
 
     const existingWarehouse = await prisma.warehouse.findUnique({
       where: {
@@ -102,13 +97,7 @@ router.put("/:id", async (req, res) => {
       where: {
         id,
       },
-      data: {
-      warehouseName: warehouseName.trim(),
-      address:
-        typeof address === "string" && address.trim() !== ""
-          ? address.trim()
-          : null,
-    },
+      data: warehouseModel,
     });
 
     res.status(200).json(updatedWarehouse);
@@ -121,7 +110,7 @@ router.put("/:id", async (req, res) => {
   }
 });
 
-// ID'ye göre depo sil
+// DELETE /warehouses/:id
 router.delete("/:id", async (req, res) => {
   try {
     const id = Validation.idValidation(req.params.id, res, "depo");

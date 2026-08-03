@@ -1,10 +1,24 @@
 import type { Response } from "express";
+import { 
+    RoleModel,
+    UserModel,
+    CustomerModel,
+    CategoryModel,
+    SupplierModel,
+    WarehouseModel,
+    ProductModel,
+    StockModel,
+    SaleModel,
+    SaleDetailModel,
+    AuditLogModel,
+    LoginModel,
+} from "../models/models.js";
 
 export class Validation {
 
     //Role Validation
-    static roleValidation(data: any, res: Response): boolean {
-        const { roleName } = data;
+    static roleValidation(roleModel: RoleModel, res: Response): boolean {
+        const { roleName } = roleModel;
 
         if (typeof roleName !== "string" || roleName.trim().length === 0) {
             res.status(400).json({
@@ -18,14 +32,8 @@ export class Validation {
     }
 
     //User Validation
-    static userValidation(data: any, res: Response): boolean {
-        const {
-            firstName,
-            lastName,
-            email,
-            password,
-            roleId,
-        } = data;
+    static userValidation(userModel: UserModel, res: Response): boolean {
+        const {firstName, lastName, email, password, roleId,} = userModel;
       
         if (typeof firstName !== "string" || firstName.trim().length === 0 || typeof lastName !== "string" || lastName.trim().length === 0) {
             res.status(400).json({
@@ -63,8 +71,8 @@ export class Validation {
       }
   
     //Customer Validation
-    static customerValidation(data: any, res: Response): boolean {
-        const { firstName, lastName, phone, email } = data;
+    static customerValidation(customerModel: CustomerModel, res: Response): boolean {
+        const { firstName, lastName, phone, email } = customerModel;
 
         if (typeof firstName !== "string" || firstName.trim().length === 0 || typeof lastName !== "string" || lastName.trim().length === 0) {
             res.status(400).json({
@@ -94,8 +102,8 @@ export class Validation {
     }
 
     //Category Validation
-    static categoryValidation(data: any, res: Response): boolean {
-        const { categoryName } = data;
+    static categoryValidation(categoryModel: CategoryModel, res: Response): boolean {
+        const { categoryName } = categoryModel;
         
         if (
             typeof categoryName !== "string" ||
@@ -112,12 +120,8 @@ export class Validation {
     }
 
     //Supplier Validation
-    static supplierValidation(data: any, res: Response): boolean {
-        const {
-            companyName,
-            phone,
-            email,
-        } = data;
+    static supplierValidation(supplierModel: SupplierModel, res: Response): boolean {
+        const {companyName, phone, email,} = supplierModel;
 
         if (typeof companyName !== "string" || companyName.trim().length === 0) {
             res.status(400).json({
@@ -147,8 +151,8 @@ export class Validation {
     }
 
     //Warehouse Validation
-    static warehouseValidation(data: any, res: Response): boolean {
-        const { warehouseName } = data;
+    static warehouseValidation(warehouseModel: WarehouseModel, res: Response): boolean {
+        const { warehouseName } = warehouseModel;
 
         if (typeof warehouseName !== "string" || warehouseName.trim().length === 0) {
             res.status(400).json({
@@ -162,15 +166,8 @@ export class Validation {
     }
 
     //Product Validation
-    static productValidation(data: any, res: Response): boolean {
-        const {
-            barcode,
-            productName,
-            purchasePrice,
-            salePrice,
-            categoryId,
-            supplierId,
-        } = data;
+    static productValidation(productModel: ProductModel, res: Response): boolean {
+        const {barcode, productName, purchasePrice, salePrice, categoryId, supplierId,} = productModel;
 
         if (typeof barcode !== "string" || barcode.trim().length === 0 || typeof productName !== "string" || productName.trim().length === 0) {
             res.status(400).json({
@@ -208,8 +205,8 @@ export class Validation {
     }
 
     //Stock Validation
-    static stockValidation(data: any, res: Response): boolean {
-        const { quantity, minimumQuantity, productId, warehouseId } = data;
+    static stockValidation(stockModel: StockModel, res: Response): boolean {
+        const { quantity, minimumQuantity, productId, warehouseId } = stockModel;
 
         if (quantity === undefined || minimumQuantity === undefined || productId === undefined || warehouseId === undefined) {
             res.status(400).json({
@@ -239,8 +236,8 @@ export class Validation {
     }
   
     //Sale Validation
-    static saleValidation(data: any, res: Response): boolean {
-        const { totalAmount, paymentMethod, customerId, userId } = data;
+    static saleValidation(saleModel: SaleModel, res: Response): boolean {
+        const { totalAmount, paymentMethod, customerId, userId } = saleModel;
 
         if (totalAmount === undefined || paymentMethod === undefined || customerId === undefined || userId === undefined) {
             res.status(400).json({
@@ -278,8 +275,8 @@ export class Validation {
     }
   
     //Sale Detail Validation
-    static saleDetailValidation(data: any, res: Response): boolean {
-        const { quantity, unitPrice, totalPrice, saleId, productId, warehouseId } = data;
+    static saleDetailValidation(saleDetailModel: SaleDetailModel, res: Response): boolean {
+        const { quantity, unitPrice, totalPrice, saleId, productId, warehouseId } = saleDetailModel;
 
         if (quantity === undefined || unitPrice === undefined || totalPrice === undefined || saleId === undefined || productId === undefined || warehouseId === undefined) {
             res.status(400).json({
@@ -317,8 +314,8 @@ export class Validation {
     }
   
     //Audit Log Validation
-    static auditLogValidation(data: any, res: Response): boolean {
-        const { action, tableName, recordId, userId } = data;
+    static auditLogValidation(auditLogModel: AuditLogModel, res: Response): boolean {
+        const { action, tableName, recordId, userId } = auditLogModel;
 
         if (action === undefined || tableName === undefined || recordId === undefined || userId === undefined) {
             res.status(400).json({
@@ -363,8 +360,8 @@ export class Validation {
     }
 
     // Login Validation
-    static loginValidation(data: any, res: Response): boolean {
-        const { email, password } = data;
+    static loginValidation(loginModel: LoginModel, res: Response): boolean {
+        const { email, password } = loginModel;
 
         if (typeof email !== "string" || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
             res.status(400).json({

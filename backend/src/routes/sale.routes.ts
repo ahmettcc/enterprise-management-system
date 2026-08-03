@@ -1,10 +1,11 @@
 import { Router } from "express";
 import { prisma } from "../lib/prisma.js";
 import { Validation } from "../validations/validations.js";
+import { SaleModel } from "../models/models.js";
 
 const router = Router();
 
-// Bütün satışları getir
+// GET /sales
 router.get("/", async (req, res) => {
   try {
     const sales = await prisma.sale.findMany({
@@ -24,20 +25,15 @@ router.get("/", async (req, res) => {
   }
 });
 
-// Yeni satış ekle
+// POST /sales
 router.post("/", async (req, res) => {
   try {
-    const { totalAmount, paymentMethod, customerId, userId } = req.body;
+    const saleModel = new SaleModel(req.body);
 
-    if (!Validation.saleValidation(req.body, res)) return;
+    if (!Validation.saleValidation(saleModel, res)) return;
 
     const sale = await prisma.sale.create({
-      data: {
-        totalAmount,
-        paymentMethod,
-        customerId,
-        userId,
-      },
+      data: saleModel,
     });
 
     res.status(201).json(sale);
@@ -50,7 +46,7 @@ router.post("/", async (req, res) => {
   }
 });
 
-// ID'ye göre tek satış getir
+// GET /sales/:id
 router.get("/:id", async (req, res) => {
   try {
     const id = Validation.idValidation(req.params.id, res, "satış");
@@ -83,16 +79,16 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-// ID'ye göre satış güncelle
+// PUT /sales/:id
 router.put("/:id", async (req, res) => {
   try {
     const id = Validation.idValidation(req.params.id, res, "satış");
 
     if (id === null) return;
 
-    const { totalAmount, paymentMethod, customerId, userId } = req.body;
+    const saleModel = new SaleModel(req.body);
 
-    if (!Validation.saleValidation(req.body, res)) return;
+    if (!Validation.saleValidation(saleModel, res)) return;
 
     const existingSale = await prisma.sale.findUnique({
       where: {
@@ -110,12 +106,7 @@ router.put("/:id", async (req, res) => {
       where: {
         id,
       },
-      data: {
-        totalAmount,
-        paymentMethod,
-        customerId,
-        userId,
-      },
+      data: saleModel,
     });
 
     res.status(200).json(updatedSale);
@@ -128,7 +119,7 @@ router.put("/:id", async (req, res) => {
   }
 });
 
-// ID'ye göre satış sil
+// DELETE /sales/:id
 router.delete("/:id", async (req, res) => {
   try {
     const id = Validation.idValidation(req.params.id, res, "satış");

@@ -1,10 +1,11 @@
 import { Router } from "express";
 import { prisma } from "../lib/prisma.js";
 import { Validation } from "../validations/validations.js";
+import { CategoryModel } from "../models/models.js";
 
 const router = Router();
 
-// Bütün kategorileri getir
+// GET /categories
 router.get("/", async (req, res) => {
   try {
     const categories = await prisma.category.findMany();
@@ -19,21 +20,15 @@ router.get("/", async (req, res) => {
   }
 });
 
-// Yeni kategori ekle
+// POST /categories
 router.post("/", async (req, res) => {
   try {
-    const { categoryName, description } = req.body;
+    const categoryModel = new CategoryModel(req.body);
 
-    if (!Validation.categoryValidation(req.body, res)) return;
+    if (!Validation.categoryValidation(categoryModel, res)) return;
 
     const category = await prisma.category.create({
-      data: {
-        categoryName: categoryName.trim(),
-        description:
-          typeof description === "string" && description.trim() !== ""
-            ? description.trim()
-            : null,
-      },
+      data: categoryModel,
     });
 
     res.status(201).json(category);
@@ -46,7 +41,7 @@ router.post("/", async (req, res) => {
   }
 });
 
-// ID'ye göre tek kategori getir
+// GET /categories/:id
 router.get("/:id", async (req, res) => {
   try {
     const id = Validation.idValidation(
@@ -79,7 +74,7 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-// ID'ye göre kategori güncelle
+// PUT /categories/:id
 router.put("/:id", async (req, res) => {
   try {
     const id = Validation.idValidation(
@@ -90,9 +85,9 @@ router.put("/:id", async (req, res) => {
     
     if (id === null) return;
 
-    const { categoryName, description } = req.body;
+    const categoryModel = new CategoryModel(req.body);
 
-    if (!Validation.categoryValidation(req.body, res)) return;
+    if (!Validation.categoryValidation(categoryModel, res)) return;
 
     const existingCategory = await prisma.category.findUnique({
       where: {
@@ -110,13 +105,7 @@ router.put("/:id", async (req, res) => {
       where: {
         id,
       },
-      data: {
-        categoryName: categoryName.trim(),
-        description:
-          typeof description === "string" && description.trim() !== ""
-          ? description.trim()
-            : null,
-      },
+      data: categoryModel,
     });
 
     res.status(200).json(updatedCategory);
@@ -129,7 +118,7 @@ router.put("/:id", async (req, res) => {
   }
 });
 
-// ID'ye göre kategori sil
+// DELETE /categories/:id
 router.delete("/:id", async (req, res) => {
   try {
     const id = Validation.idValidation(

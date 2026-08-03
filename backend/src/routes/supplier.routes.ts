@@ -1,10 +1,11 @@
 import { Router } from "express";
 import { prisma } from "../lib/prisma.js";
 import { Validation } from "../validations/validations.js";
+import { SupplierModel } from "../models/models.js";
 
 const router = Router();
 
-// Bütün tedarikçileri getir
+// GET /suppliers
 router.get("/", async (req, res) => {
   try {
     const suppliers = await prisma.supplier.findMany();
@@ -19,37 +20,15 @@ router.get("/", async (req, res) => {
   }
 });
 
-// Yeni tedarikçi ekle
+// POST /suppliers
 router.post("/", async (req, res) => {
   try {
-    const {companyName, contactPerson, phone, email, address,} = req.body;
+    const supplierModel = new SupplierModel(req.body);
 
-    if (!Validation.supplierValidation(req.body, res)) return;
+    if (!Validation.supplierValidation(supplierModel, res)) return;
 
     const supplier = await prisma.supplier.create({
-    data: {
-      companyName: companyName.trim(),
-
-      contactPerson:
-        typeof contactPerson === "string" && contactPerson.trim() !== ""
-          ? contactPerson.trim()
-          : null,
-
-      phone:
-        typeof phone === "string" && phone.trim() !== ""
-          ? phone.trim()
-          : null,
-
-      email:
-        typeof email === "string" && email.trim() !== ""
-          ? email.trim()
-          : null,
-
-      address:
-        typeof address === "string" && address.trim() !== ""
-          ? address.trim()
-          : null,
-    },
+    data: supplierModel,
   });
 
     res.status(201).json(supplier);
@@ -62,7 +41,7 @@ router.post("/", async (req, res) => {
   }
 });
 
-// ID'ye göre tek tedarikçi getir
+// GET /suppliers/:id
 router.get("/:id", async (req, res) => {
   try {
     const id = Validation.idValidation(
@@ -95,7 +74,7 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-// ID'ye göre tedarikçi güncelle
+// PUT /suppliers/:id
 router.put("/:id", async (req, res) => {
   try {
     const id = Validation.idValidation(
@@ -106,9 +85,9 @@ router.put("/:id", async (req, res) => {
     
     if (id === null) return;
 
-    const { companyName, contactPerson, phone, email, address } = req.body;
+    const supplierModel = new SupplierModel(req.body);
 
-    if (!Validation.supplierValidation(req.body, res)) return;
+    if (!Validation.supplierValidation(supplierModel, res)) return;
 
     const existingSupplier = await prisma.supplier.findUnique({
       where: {
@@ -126,29 +105,7 @@ router.put("/:id", async (req, res) => {
       where: {
         id,
       },
-      data: {
-        companyName: companyName.trim(),
-            
-        contactPerson:
-          typeof contactPerson === "string" && contactPerson.trim() !== ""
-            ? contactPerson.trim()
-            : null,
-            
-        phone:
-          typeof phone === "string" && phone.trim() !== ""
-            ? phone.trim()
-            : null,
-            
-        email:
-          typeof email === "string" && email.trim() !== ""
-            ? email.trim()
-            : null,
-            
-        address:
-          typeof address === "string" && address.trim() !== ""
-            ? address.trim()
-            : null,
-      },
+      data: supplierModel,
     });
 
     res.status(200).json(updatedSupplier);
@@ -161,7 +118,7 @@ router.put("/:id", async (req, res) => {
   }
 });
 
-// ID'ye göre tedarikçi sil
+// DELETE /suppliers/:id
 router.delete("/:id", async (req, res) => {
   try {
     const id = Validation.idValidation(

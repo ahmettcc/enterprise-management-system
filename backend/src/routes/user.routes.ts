@@ -1,11 +1,12 @@
 import { Router } from "express";
 import { prisma } from "../lib/prisma.js";
 import { Validation } from "../validations/validations.js";
+import { UserModel } from "../models/models.js";
 import bcrypt from "bcryptjs";
 
 const router = Router();
 
-// Bütün kullanıcıları getir
+// GET /users
 router.get("/", async (req, res) => {
   try {
     const users = await prisma.user.findMany({
@@ -24,22 +25,20 @@ router.get("/", async (req, res) => {
   }
 });
 
-// Yeni kullanıcı ekle
+// POST /users
 router.post("/", async (req, res) => {
   try {
-    const { firstName, lastName, email, password, roleId } = req.body;
+    const userModel = new UserModel(req.body);
 
-    if (!Validation.userValidation(req.body, res)) return;
+    if (!Validation.userValidation(userModel, res)) return;
 
+    const { password, ...userData} = userModel;
     const passwordHash = await bcrypt.hash(password, 10);
 
     const user = await prisma.user.create({
       data: {
-        firstName,
-        lastName,
-        email: email.trim().toLowerCase(),
+        ...userData,
         passwordHash,
-        roleId,
       },
     });
 
@@ -53,7 +52,7 @@ router.post("/", async (req, res) => {
   }
 });
 
-// ID'ye göre tek kullanıcı getir
+// GET /users/:id
 router.get("/:id", async (req, res) => {
   try {
     const id = Validation.idValidation(
@@ -89,7 +88,7 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-// ID'ye göre kullanıcı güncelle
+// PUT /users/:id
 router.put("/:id", async (req, res) => {
   try {
     const id = Validation.idValidation(
@@ -100,9 +99,11 @@ router.put("/:id", async (req, res) => {
 
     if (id === null) return;
 
-    const { firstName, lastName, email, password, roleId } = req.body;
+    const userModel = new UserModel(req.body);
 
-    if (!Validation.userValidation(req.body, res)) return;
+    if (!Validation.userValidation(userModel, res)) return;
+
+    const { password, ...userData } = userModel;
 
     const existingUser = await prisma.user.findUnique({
       where: {
@@ -123,11 +124,8 @@ router.put("/:id", async (req, res) => {
         id,
       },
       data: {
-        firstName,
-        lastName,
-        email: email.trim().toLowerCase(),
+        ...userData,
         passwordHash,
-        roleId,
       },
     });
 
@@ -141,7 +139,7 @@ router.put("/:id", async (req, res) => {
   }
 });
 
-// ID'ye göre kullanıcı sil
+// DELETE /users/:id
 router.delete("/:id", async (req, res) => {
   try {
     const id = Validation.idValidation(
