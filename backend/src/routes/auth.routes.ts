@@ -7,7 +7,7 @@ import { LoginModel } from "../models/models.js";
 const router = Router();
 
 // POST /login
-router.post("/login", async (req, res) => {
+router.post("/login", async (req, res) => { 
     try {
         const loginModel = new LoginModel(req.body);
 

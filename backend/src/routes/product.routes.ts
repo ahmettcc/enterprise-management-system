@@ -2,6 +2,7 @@ import { Router } from "express";
 import { prisma } from "../lib/prisma.js";
 import { Validation } from "../validations/validations.js";
 import { ProductModel } from "../models/models.js";
+import { ProductCatalogDTO } from "../dtos/dtos.js";
 
 const router = Router();
 
@@ -45,6 +46,74 @@ router.post("/", async (req, res) => {
     });
   }
 });
+
+// GET /products/catalog
+router.get("/catalog", async (req, res) => {
+  try {
+    const products = await prisma.product.findMany({
+      include: {
+        category: {
+          select: {
+            categoryName: true
+          }
+        },
+        stocks: {
+          select: {
+            quantity: true
+          },
+        },
+      },
+    });
+    res.status(200).json(products.map((product) => new ProductCatalogDTO(product)));
+  }
+  catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      message: "Ürün kataloğu getirilirken bir hata oluştu.",
+    });
+  }
+});
+
+// GET /products/catalog/:id
+router.get("/catalog/:id", async (req, res) => {
+  try {
+    const id = Validation.idValidation(req.params.id, res, "ürün");
+
+    if (id === null) return;
+
+    const product = await prisma.product.findUnique({
+      where: {
+        id,
+      },
+      include: {
+        category: {
+          select: {
+            categoryName: true
+          }
+        },
+        stocks: {
+          select: {
+            quantity: true
+          },
+        },
+      },
+    });
+    if (!product) {
+      return res.status(404).json({
+        message: "Ürün bulunamadı.",
+      });
+    }
+
+    res.status(200).json(new ProductCatalogDTO(product));
+  }
+  catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      message: "Ürün kataloğu getirilirken bir hata oluştu.",
+    });
+  }
+});
+
 
 // GET /products/:id
 router.get("/:id", async (req, res) => {
