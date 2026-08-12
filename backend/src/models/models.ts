@@ -1,3 +1,5 @@
+import { Prisma } from "../generated/prisma/client.js";
+
 // RoleModel
 export class RoleModel {
     roleName: string;
@@ -84,22 +86,28 @@ export class WarehouseModel {
 
 // ProductModel
 export class ProductModel {
+    id: number;
     barcode: string;
     productName: string;
     description: string | null;
-    purchasePrice: number;
-    salePrice: number;
+    purchasePrice: Prisma.Decimal;
+    salePrice: Prisma.Decimal;
     categoryId: number;
     supplierId: number;
+    category: any;
+    stocks: any;
 
     constructor(data: any) {
+        this.id = data.id;
         this.barcode = typeof data.barcode === "string" ? data.barcode.trim() : data.barcode;
         this.productName = typeof data.productName === "string" ? data.productName.trim() : data.productName;
         this.description = typeof data.description === "string" && data.description.trim() !== "" ? data.description.trim() : data.description ?? null;
-        this.purchasePrice = data.purchasePrice;
-        this.salePrice = data.salePrice;
+        this.purchasePrice = new Prisma.Decimal(data.purchasePrice);
+        this.salePrice = new Prisma.Decimal(data.salePrice);
         this.categoryId = data.categoryId;
         this.supplierId = data.supplierId;
+        this.category = data.category;
+        this.stocks = data.stocks;
     }
 }
 

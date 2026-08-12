@@ -1,3 +1,4 @@
+import { ProductModel } from "../models/models.js";
 export class ProductCatalogDTO {
     id: number;
     productName: string;
@@ -6,7 +7,7 @@ export class ProductCatalogDTO {
     categoryName: string;
     available: boolean;
 
-    constructor(product: any) {
+    constructor(product: ProductModel) {
         this.id = product.id;
         this.productName = product.productName;
         this.description = product.description;

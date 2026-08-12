@@ -2,11 +2,13 @@ import { Router } from "express";
 import { prisma } from "../lib/prisma.js";
 import { Validation } from "../validations/validations.js";
 import { StockModel } from "../models/models.js";
+import { authenticateToken } from "../middlewares/auth.middleware.js";
+import { authorizeRole } from "../middlewares/authorization.middleware.js";
 
 const router = Router();
 
 // GET /stocks
-router.get("/", async (req, res) => {
+router.get("/", authenticateToken, authorizeRole(1), async (req, res) => {
   try {
     const stocks = await prisma.stock.findMany({
       include: {
@@ -26,7 +28,7 @@ router.get("/", async (req, res) => {
 });
 
 // POST /stocks
-router.post("/", async (req, res) => {
+router.post("/", authenticateToken, authorizeRole(1), async (req, res) => {
   try {
     const stockModel = new StockModel(req.body);
 
@@ -55,7 +57,7 @@ router.post("/", async (req, res) => {
 });
 
 // GET /stocks/:id
-router.get("/:id", async (req, res) => {
+router.get("/:id", authenticateToken, authorizeRole(1), async (req, res) => {
   try {
     const id = Validation.idValidation(req.params.id, res, "stok");
 
@@ -88,7 +90,7 @@ router.get("/:id", async (req, res) => {
 });
 
 // PUT /stocks/:id
-router.put("/:id", async (req, res) => {
+router.put("/:id", authenticateToken, authorizeRole(1), async (req, res) => {
   try {
     const id = Validation.idValidation(req.params.id, res, "stok");
 
@@ -137,7 +139,7 @@ router.put("/:id", async (req, res) => {
 });
 
 // DELETE /stocks/:id
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", authenticateToken, authorizeRole(1), async (req, res) => {
   try {
     const id = Validation.idValidation(req.params.id, res, "stok");
 

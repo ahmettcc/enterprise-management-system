@@ -2,11 +2,13 @@ import { Router } from "express";
 import { prisma } from "../lib/prisma.js";
 import { Validation } from "../validations/validations.js";
 import { CustomerModel } from "../models/models.js";
+import { authenticateToken } from "../middlewares/auth.middleware.js";
+import { authorizeRole } from "../middlewares/authorization.middleware.js";
 
 const router = Router();
 
 // GET /customers
-router.get("/", async (req, res) => {
+router.get("/", authenticateToken, authorizeRole(1), async (req, res) => {
   try {
     const customers = await prisma.customer.findMany();
 
@@ -21,7 +23,7 @@ router.get("/", async (req, res) => {
 });
 
 // POST /customers
-router.post("/", async (req, res) => {
+router.post("/", authenticateToken, authorizeRole(1), async (req, res) => {
   try {
     const customerModel = new CustomerModel(req.body);
 
@@ -42,7 +44,7 @@ router.post("/", async (req, res) => {
 });
 
 // GET /customers/:id
-router.get("/:id", async (req, res) => {
+router.get("/:id", authenticateToken, authorizeRole(1), async (req, res) => {
   try {
     const id = Validation.idValidation(req.params.id, res, "müşteri");
 
@@ -71,7 +73,7 @@ router.get("/:id", async (req, res) => {
 });
 
 // PUT /customers/:id
-router.put("/:id", async (req, res) => {
+router.put("/:id", authenticateToken, authorizeRole(1), async (req, res) => {
   try {
     const id = Validation.idValidation(req.params.id, res, "müşteri");
 
@@ -99,7 +101,7 @@ router.put("/:id", async (req, res) => {
 });
 
 // DELETE /customers/:id
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", authenticateToken, authorizeRole(1), async (req, res) => {
   try {
     const id = Validation.idValidation(req.params.id, res, "müşteri");
 

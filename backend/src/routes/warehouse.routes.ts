@@ -2,11 +2,13 @@ import { Router } from "express";
 import { prisma } from "../lib/prisma.js";
 import { Validation } from "../validations/validations.js";
 import { WarehouseModel } from "../models/models.js";
+import { authenticateToken } from "../middlewares/auth.middleware.js";
+import { authorizeRole } from "../middlewares/authorization.middleware.js";
 
 const router = Router();
 
 // GET /warehouses
-router.get("/", async (req, res) => {
+router.get("/", authenticateToken, authorizeRole(1), async (req, res) => {
   try {
     const warehouses = await prisma.warehouse.findMany();
 
@@ -21,7 +23,7 @@ router.get("/", async (req, res) => {
 });
 
 // POST /warehouses
-router.post("/", async (req, res) => {
+router.post("/", authenticateToken, authorizeRole(1), async (req, res) => {
   try {
     const warehouseModel = new WarehouseModel(req.body);
 
@@ -42,7 +44,7 @@ router.post("/", async (req, res) => {
 });
 
 // GET /warehouses/:id
-router.get("/:id", async (req, res) => {
+router.get("/:id", authenticateToken, authorizeRole(1), async (req, res) => {
   try {
     const id = Validation.idValidation(req.params.id, res, "depo");
 
@@ -71,7 +73,7 @@ router.get("/:id", async (req, res) => {
 });
 
 // PUT /warehouses/:id
-router.put("/:id", async (req, res) => {
+router.put("/:id", authenticateToken, authorizeRole(1), async (req, res) => {
   try {
     const id = Validation.idValidation(req.params.id, res, "depo");
 
@@ -111,7 +113,7 @@ router.put("/:id", async (req, res) => {
 });
 
 // DELETE /warehouses/:id
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", authenticateToken, authorizeRole(1), async (req, res) => {
   try {
     const id = Validation.idValidation(req.params.id, res, "depo");
 

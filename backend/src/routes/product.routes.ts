@@ -3,11 +3,13 @@ import { prisma } from "../lib/prisma.js";
 import { Validation } from "../validations/validations.js";
 import { ProductModel } from "../models/models.js";
 import { ProductCatalogDTO } from "../dtos/dtos.js";
+import { authenticateToken } from "../middlewares/auth.middleware.js";
+import { authorizeRole } from "../middlewares/authorization.middleware.js";
 
 const router = Router();
 
 // GET /products
-router.get("/", async (req, res) => {
+router.get("/", authenticateToken, authorizeRole(1), async (req, res) => {
   try {
     const products = await prisma.product.findMany({
       include: {
@@ -27,7 +29,7 @@ router.get("/", async (req, res) => {
 });
 
 // POST /products
-router.post("/", async (req, res) => {
+router.post("/", authenticateToken, authorizeRole(1), async (req, res) => {
   try {
     const productModel = new ProductModel(req.body);
 
@@ -64,7 +66,15 @@ router.get("/catalog", async (req, res) => {
         },
       },
     });
-    res.status(200).json(products.map((product) => new ProductCatalogDTO(product)));
+
+    const productCatalog = [];
+
+    for (const product of products) {
+      const productDTO = new ProductCatalogDTO(product);
+      productCatalog.push(productDTO);
+    }
+
+    res.status(200).json(productCatalog);
   }
   catch (error) {
     console.error(error);
@@ -116,7 +126,7 @@ router.get("/catalog/:id", async (req, res) => {
 
 
 // GET /products/:id
-router.get("/:id", async (req, res) => {
+router.get("/:id", authenticateToken, authorizeRole(1), async (req, res) => {
   try {
     const id = Validation.idValidation(req.params.id, res, "ürün");
 
@@ -149,7 +159,7 @@ router.get("/:id", async (req, res) => {
 });
 
 // PUT /products/:id
-router.put("/:id", async (req, res) => {
+router.put("/:id", authenticateToken, authorizeRole(1), async (req, res) => {
   try {
     const id = Validation.idValidation(req.params.id, res, "ürün");
 
@@ -189,7 +199,7 @@ router.put("/:id", async (req, res) => {
 });
 
 // DELETE /products/:id
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", authenticateToken, authorizeRole(1), async (req, res) => {
   try {
     const id = Validation.idValidation(req.params.id, res, "ürün");
 

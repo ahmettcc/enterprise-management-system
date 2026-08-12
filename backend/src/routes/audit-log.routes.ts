@@ -2,11 +2,13 @@ import { Router } from "express";
 import { prisma } from "../lib/prisma.js";
 import { Validation } from "../validations/validations.js";
 import { AuditLogModel } from "../models/models.js";
+import { authenticateToken } from "../middlewares/auth.middleware.js";
+import { authorizeRole } from "../middlewares/authorization.middleware.js";
 
 const router = Router();
 
 // GET /audit-logs
-router.get("/", async (req, res) => {
+router.get("/", authenticateToken, authorizeRole(1), async (req, res) => {
   try {
     const auditLogs = await prisma.auditLog.findMany({
       include: {
@@ -25,7 +27,7 @@ router.get("/", async (req, res) => {
 });
 
 // POST /audit-logs
-router.post("/", async (req, res) => {
+router.post("/", authenticateToken, authorizeRole(1), async (req, res) => {
   try {
     const auditLogModel = new AuditLogModel(req.body);
 
@@ -46,7 +48,7 @@ router.post("/", async (req, res) => {
 });
 
 // GET /audit-logs/:id
-router.get("/:id", async (req, res) => {
+router.get("/:id", authenticateToken, authorizeRole(1), async (req, res) => {
   try {
     const id = Validation.idValidation(req.params.id, res, "audit log");
 
@@ -78,7 +80,7 @@ router.get("/:id", async (req, res) => {
 });
 
 // PUT /audit-logs/:id
-router.put("/:id", async (req, res) => {
+router.put("/:id", authenticateToken, authorizeRole(1), async (req, res) => {
   try {
     const id = Validation.idValidation(req.params.id, res, "audit log");
 
@@ -118,7 +120,7 @@ router.put("/:id", async (req, res) => {
 });
 
 // DELETE /audit-logs/:id
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", authenticateToken, authorizeRole(1), async (req, res) => {
   try {
     const id = Validation.idValidation(req.params.id, res, "audit log");
 

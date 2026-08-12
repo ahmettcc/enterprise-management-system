@@ -3,8 +3,15 @@ import bcrypt from "bcryptjs";
 import { prisma } from "../lib/prisma.js";
 import { Validation } from "../validations/validations.js";
 import { LoginModel } from "../models/models.js";
+import jwt from "jsonwebtoken";
 
 const router = Router();
+
+const JWT_SECRET = process.env.JWT_SECRET;
+
+if (!JWT_SECRET) {
+    throw new Error("JWT_SECRET .env dosyasında tanımlı değil.");
+}
 
 // POST /login
 router.post("/login", async (req, res) => { 
@@ -20,12 +27,12 @@ router.post("/login", async (req, res) => {
                 email,
             },
             select: {
+                passwordHash: true,
                 id: true,
+                roleId: true,
                 firstName: true,
                 lastName: true,
                 email: true,
-                passwordHash: true,
-                roleId: true,
                 role: true,
             },
         });
@@ -36,7 +43,7 @@ router.post("/login", async (req, res) => {
             });
         }
 
-        const isPasswordCorrect = await bcrypt.compare(
+        const isPasswordCorrect = await bcrypt.compare(  
             password,
             user.passwordHash
         );
@@ -47,11 +54,23 @@ router.post("/login", async (req, res) => {
             });
         }
 
+        const token = jwt.sign(
+        {
+            userId: user.id,
+            roleId: user.roleId,
+            
+        },
+        JWT_SECRET,
+        {
+            expiresIn: "1h",
+        });
+
         const { passwordHash, ...safeUser } = user;
 
         res.status(200).json({
             message: "Giriş başarılı.",
             user: safeUser,
+            token,
         });
     } catch (error) {
         console.error(error);

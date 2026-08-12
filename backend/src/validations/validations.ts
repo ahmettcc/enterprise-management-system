@@ -185,7 +185,7 @@ export class Validation {
             return false;
         }
 
-        if (!Number.isFinite(purchasePrice) || purchasePrice <= 0 || !Number.isFinite(salePrice) || salePrice <= 0) {
+        if (!purchasePrice.isFinite() || purchasePrice.lte(0) || !salePrice.isFinite() || salePrice.lte(0)) {
             res.status(400).json({
                 message: "Alış ve satış fiyatı pozitif bir sayı olmalıdır.",
             });

@@ -2,11 +2,13 @@ import { Router } from "express";
 import { prisma } from "../lib/prisma.js";
 import { Validation } from "../validations/validations.js";
 import { SaleDetailModel } from "../models/models.js";
+import { authenticateToken } from "../middlewares/auth.middleware.js";
+import { authorizeRole } from "../middlewares/authorization.middleware.js";
 
 const router = Router();
 
 // GET /sales-details
-router.get("/", async (req, res) => {
+router.get("/", authenticateToken, authorizeRole(1), async (req, res) => {
   try {
     const saleDetails = await prisma.saleDetail.findMany({
       include: {
@@ -27,7 +29,7 @@ router.get("/", async (req, res) => {
 });
 
 // POST /sales-details
-router.post("/", async (req, res) => {
+router.post("/", authenticateToken, authorizeRole(1), async (req, res) => {
   try {
     const saleDetailModel = new SaleDetailModel(req.body);
 
@@ -84,7 +86,7 @@ router.post("/", async (req, res) => {
 });
 
 // GET /sales-details/:id
-router.get("/:id", async (req, res) => {
+router.get("/:id", authenticateToken, authorizeRole(1), async (req, res) => {
   try {
     const id = Validation.idValidation(req.params.id, res, "satış detayı");
 
@@ -118,7 +120,7 @@ router.get("/:id", async (req, res) => {
 });
 
 // PUT /sales-details/:id
-router.put("/:id", async (req, res) => {
+router.put("/:id", authenticateToken, authorizeRole(1), async (req, res) => {
   try {
     const id = Validation.idValidation(req.params.id, res, "satış detayı");
 
@@ -201,7 +203,7 @@ router.put("/:id", async (req, res) => {
 });
 
 // DELETE /sales-details/:id
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", authenticateToken, authorizeRole(1), async (req, res) => {
   try {
     const id = Validation.idValidation(req.params.id, res, "satış detayı");
 
